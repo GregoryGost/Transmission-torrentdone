@@ -65,7 +65,7 @@ function serialprocess
 	# Variables:
 	# $1 - Full file path = $TR_TORRENT_DIR + $TR_TORRENT_NAME
 	# $2 - Is File or Directory (1 - File | 2 - Directory)
-	# $3 - Base torrent directory name (only $2 - Directory) !!!
+	# $3 - Base torrent directory name (only $2 - Directory) !!! 
 	
 	if ! [[ -f "$1" ]]; then
 		# Additional check for file existence
@@ -108,6 +108,7 @@ function serialprocess
 	
 	# If Dir
 	if [ $2 == 2 ]; then
+    logging "#========================#"
 		logging "This File in directory is Serial..."
 		# Get Serial directory name
 		local TR_DIR_NAME="$3"
@@ -116,10 +117,10 @@ function serialprocess
 		local TR_TORRENT_NAME=`/usr/bin/basename "$1"` # example result: name.mkv
 		logging "TR_TORRENT_NAME: $TR_TORRENT_NAME"
 		# Get and change Serial name
-		local SERIALNAME=`echo $TR_DIR_NAME | /bin/grep -Po '^(.*?).S[0-9].' | /bin/sed -r 's/(\sS[0-9].)//' | /bin/sed -r 's/(\s)/_/g'`
+		local SERIALNAME=`echo $TR_TORRENT_NAME | /bin/grep -Po '^(.*?).S[0-9].' | /bin/sed -r 's/([\s\.]S[0-9].)//' | /bin/sed -r 's/(\s|\.)/_/g'`
 		logging "SERIALNAME: $SERIALNAME"
 		# Get Serial season
-		local SEASON=`echo $TR_DIR_NAME | /bin/grep -Po 'S[0-9]{2}' | /bin/sed -r 's/S//'`
+		local SEASON=`echo $TR_TORRENT_NAME | /bin/grep -Po 'S[0-9]{2}' | /bin/sed -r 's/S//'`
 		logging "SEASON: $SEASON"
 		# Set Serial path
 		local SERIALPATH="/mnt/data/media/serials/$SERIALNAME/Season_$SEASON/"
@@ -196,6 +197,7 @@ function filmprocess
 	
 	# If Dir
 	if [ $2 == 2 ]; then
+    logging "#========================#"
 		logging "This File in directory is Film..."
 		# Get Film directory name
 		local TR_DIR_NAME="$4"
