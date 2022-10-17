@@ -137,12 +137,12 @@ for TORRENTID in $($TR_CONNECT -l | grep -Eo '^ *([0-9]+)' | sed -r 's/[^0-9]//g
 	# Torrent complete?
 	logging "#=====================================================================================#"
 	logging "Check torrent $TR_NAME:: PERCENT: $PERCENT; RATIO: $RATIO; STATE: $STATE; DATEDIFF: $DATEDIFF"
-	if python -c "exit(0 if $PERCENT == 100 else 1)"; then
+	if python3 -c "exit(0 if $PERCENT == 100 else 1)"; then
 		# Check ratio-limit-enabled
 		if [[ $RATIOENABLE == 1 ]]; then
 			LIMRATIO=$(cat $SETTINGFILE | grep '\"ratio-limit\":' | grep -Eo '([0-9\.])')
 			# Is the ratio greater than or equal to 2?
-			if python -c "exit(0 if $RATIO >= $LIMRATIO else 1)"; then
+			if python3 -c "exit(0 if $RATIO >= $LIMRATIO else 1)"; then
 				torrentinfo $TORRENTID
 				torrentremove $TORRENTID 1
 			fi
