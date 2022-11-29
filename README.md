@@ -1,8 +1,10 @@
 # **Transmission script-torrent-done application**
 
-![GitHub](https://img.shields.io/github/license/GregoryGost/Transmission-torrentdone)
-![GitHub](https://img.shields.io/github/repo-size/GregoryGost/Transmission-torrentdone)
-![GitHub](https://img.shields.io/github/languages/code-size/GregoryGost/Transmission-torrentdone)
+![License](https://img.shields.io/github/license/GregoryGost/transmission-torrentdone)
+![RepoSize](https://img.shields.io/github/repo-size/GregoryGost/transmission-torrentdone)
+![CodeSize](https://img.shields.io/github/languages/code-size/GregoryGost/transmission-torrentdone)
+![IssuesOpen](https://img.shields.io/github/issues-raw/GregoryGost/transmission-torrentdone)
+![LatestRelease](https://img.shields.io/github/v/release/GregoryGost/transmission-torrentdone)
 
 Создано в рамках статьи для блога: [Домашний Сервер: Часть 4 – Настройка Transmission daemon в контейнере LXC Proxmox-VE](https://gregory-gost.ru/domashnij-server-chast-4-nastrojka-transmission-daemon-v-kontejnere-lxc-proxmox-ve/)
 
