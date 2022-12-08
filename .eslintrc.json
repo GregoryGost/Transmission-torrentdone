@@ -13,10 +13,7 @@
     "sourceType": "module"
   },
   "plugins": ["@typescript-eslint", "import", "prettier"],
-  "extends": [
-    "plugin:@typescript-eslint/recommended",
-    "plugin:prettier/recommended"
-  ],
+  "extends": ["plugin:@typescript-eslint/recommended", "plugin:prettier/recommended"],
   "rules": {
     "strict": 0,
     "no-console": "warn",
