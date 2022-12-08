@@ -119,49 +119,38 @@ chown -R debian-transmission:debian-transmission torrentdone/
 chmod +x torrentdone/dist/main.js
 ```
 
-Задаем постоянные переменные через дополнительные определения настроек в systemd, чтобы не трогать базовый systemd файл.
+Создаем файл настроек и задаем свои параметры
 
 ```shell
-mkdir /etc/systemd/system/transmission-daemon.service.d
-nano /etc/systemd/system/transmission-daemon.service.d/torrentdone_env.conf
+nano /opt/torrentdone/config.json
 ```
 
-```shell
-[Service]
-Environment="TRANSMISSION_LOGIN=login"
-Environment="TRANSMISSION_PASSWORD=password"
+```json
+{
+  "login": "transmission_login",
+  "password": "1234567890"
+}
 ```
 
-Возможные переменные окружения для настройки:
+Возможные параметры для конфигурирования
 
 Обязательные:
 
-- `TRANSMISSION_LOGIN` - Логин авторизации для transmission-remote. Прописан в файле `settings.json` самого Transmission. Как правило располагается по пути `/etc/transmission-daemon/`
-- `TRANSMISSION_PASSWORD` - Пароль авторизации для transmission-remote
+- `login` - Логин авторизации для transmission-remote. Прописан в файле `settings.json` самого Transmission. Как правило располагается по пути `/etc/transmission-daemon/`
+- `password` - Пароль авторизации для transmission-remote
 
 Опциональные:
 
-- `NODE_ENV` - Режим использования приложения. Задать `development` если режим разработки. Default: `production`
-- `STORE_MEDIA_PATH` - Путь хранения медиа файлов. Default `/mnt/data/media`
-- `ALLOWED_MEDIA_EXTENSIONS` - Расширения файлов перечисленные через запятую для которых осуществляется обработка. Default: `mkv,mp4,avi`
-- `TORRENTDONE_LOG_LEVEL` - Уровень логирования. Default: `info`. Для режима разработки `trace`
-- `TORRENTDONE_LOG_FILE_PATH` - Путь до файла сохранения логов. Default: `/var/log/transmission/torrentdone.log`
-- `LOG_DATE_FORMAT` - Формат вывода даты в логе. Default: `DD.MM.YYYY HH:mm:ss` Example: 12.11.2022 21:54:03
-- `TRANSMISSION_IP_ADDRESS` - IP адрес для доступа к transmission. Default: `127.0.0.1`
-- `TRANSMISSION_TCP_PORT` - TCP порт для доступа к transmission. Default: `9091`
+- `node_env` - Режим использования приложения. Задать `development` если режим разработки. Default: `production`
+- `log_level` - Уровень логирования. Default: `info`. Для режима разработки `trace`
+- `log_file_path` - Путь до файла сохранения логов. Default: `/var/log/transmission/torrentdone.log`
+- `media_path` - Путь хранения медиа файлов. Default `/mnt/data/media`
+- `date_format` - Формат вывода даты в логе и в приложении. Для форматирования используется модуль [fecha](https://github.com/taylorhakes/fecha) Default: `DD.MM.YYYY HH:mm:ss` Example: 12.11.2022 21:54:03
+- `ip_address` - IP адрес для доступа к transmission. Default: `127.0.0.1`
+- `tcp_port` - TCP порт для доступа к transmission. Default: `9091`
+- `allowed_media_extensions` - Расширения файлов перечисленные через запятую для которых осуществляется обработка. Default: `mkv,mp4,avi`
 
-Перезапускаем сервис с новыми переменными и смотрим, что они применились.
-
-```shell
-systemctl daemon-reload
-systemctl restart transmission-daemon.service
-systemctl status transmission-daemon.service
-Loaded: loaded (/lib/systemd/system/transmission-daemon.service; enabled; vendor preset: enabled)
-Drop-In: /etc/systemd/system/transmission-daemon.service.d
-         └─torrentdone_env.conf
-```
-
-Важно! После любого изменения значения переменных, необходимо перезапускать сервис transmission-daemon через `daemon-reload` и `restart`
+Настройки будут считываться при каждом запуске скрипта по окончании процесса скачивания торрента.
 
 ### **Алгоритм обработки торрентов**
 
@@ -172,7 +161,7 @@ Drop-In: /etc/systemd/system/transmission-daemon.service.d
 ### **Правила именования торрентов для корректной работы скрипта**
 
 Нельзя просто так добавлять торренты в **Transmission remote GUI** или кидать торрент файлы в папку отслеживания с данным скриптом.  
-Если вы хотите, чтобы парсинг файлов и папок выполнялся корректно, необходимо соблюдать простые правила именования.
+Если вы хотите, чтобы парсинг файлов и папок выполнялся корректно, необходимо соблюдать простые правила именования торрентов.
 
 #### **Сериалы**
 

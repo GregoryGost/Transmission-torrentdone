@@ -1,5 +1,6 @@
 {
   "preset": "ts-jest/presets/default-esm",
+  "maxWorkers": 1,
   "roots": ["./"],
   "testEnvironment": "node",
   "transform": {
