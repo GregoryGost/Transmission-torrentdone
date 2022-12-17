@@ -270,15 +270,15 @@ class Torrentdone {
 
   /**
    * Extract data for serials
-   * /mnt/data/media/serials/$SERIALNAME/Season_$SEASON/
+   * /mnt/data/media/serials/$SERIALNAME/Season $SEASON/
    * @param file_name - File name
    * @returns - serial data
    */
   private extractSerialData(file_name: string): SerialDataI {
     const regexExec = this.regexNameSeason.exec(file_name);
     if (regexExec === null) throw new Error(`No data extracted for file "${file_name}"`);
-    const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s)/g, '_');
-    const season = `Season_${regexExec[3]}`;
+    const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s|\_)/g, ' ');
+    const season = `Season ${regexExec[3]}`;
     const data: SerialDataI = {
       name: name,
       season: season,
@@ -298,7 +298,7 @@ class Torrentdone {
   private extractFilmData(file_name: string): FilmDataI {
     const regexExec = this.regexNameYear.exec(file_name);
     if (regexExec === null) throw new Error(`No data extracted for file "${file_name}"`);
-    const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s)/g, '_');
+    const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s|\_)/g, ' ');
     const year = regexExec[3];
     const regexThreeD = /\_3D\_/i;
     const data: FilmDataI = {
@@ -326,7 +326,7 @@ class Torrentdone {
     const regexNameYearLostfilm = /^(.+).+(1080|720).+(lostfilm).+$/i;
     const regexExec = regexNameYearLostfilm.exec(file_name);
     if (regexExec === null) throw new Error(`No data extracted for file "${file_name}"`);
-    const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s)/g, '_');
+    const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s|\_)/g, ' ');
     const year = new Date().getFullYear().toString();
     const data: FilmDataI = {
       year: year,
@@ -361,6 +361,16 @@ class Torrentdone {
 
   /**
    * Serial/TVmovie file processing
+   *
+   * Plex: Naming and Organizing Your TV Show Files (from Plex)
+   * https://support.plex.tv/articles/naming-and-organizing-your-tv-show-files/
+   *
+   * ```sh
+   * /TV Shows
+   *    /Doctor Who
+   *       /Season 01
+   * ```
+   *
    * @param file_name - Torrent file name only
    * @param file_path - Torrent file full path
    */
@@ -370,7 +380,7 @@ class Torrentdone {
       // Extracting individual data for the releaser (LostFilm, NovaFilm, etc)
       // Preparing the save directory
       const savingPath: string = normalize(
-        this.config.mediaPath + `/serials/${serial_data.name}/${serial_data.season}`
+        `${this.config.mediaPath}/${this.config.serialsRootDir}/${serial_data.name}/${serial_data.season}`
       );
       this.logger.debug(`Saving path: "${savingPath}"`);
       await this.savingPathPrepare(savingPath);
@@ -393,6 +403,27 @@ class Torrentdone {
 
   /**
    * Film/Movie file processing
+   *
+   * !!! The application does not use the recommended naming from Plex !!!
+   *
+   * Naming and organizing your Movie files (from Plex)
+   * https://support.plex.tv/articles/naming-and-organizing-your-movie-media-files/
+   *
+   * ```sh
+   * /Movies
+   *    /Blade Runner (1982)
+   *       Blade Runner (1982).mp4
+   *    /Batman Begins (2005)
+   *       Batman Begins (2005).mp4
+   *       Batman Begins (2005).en.srt
+   *       poster.jpg
+   * ```
+   * or
+   * ```sh
+   * /Movies
+   *    Avatar (2009).mkv
+   * ```
+   *
    * @param file_name - Torrent file name only
    * @param file_path - Torrent file full path
    */
@@ -401,8 +432,8 @@ class Torrentdone {
       this.logger.debug(`Processing film file: "${file_name}"`);
       // Preparing the save directory
       let savingPath: string = this.config.mediaPath;
-      if (film_data.three_d) savingPath += `/films/3D/${film_data.year}`;
-      else savingPath += `/films/2D/${film_data.year}`;
+      if (film_data.three_d) savingPath += `/${this.config.filmsRootDir}/3D/${film_data.year}`;
+      else savingPath += `/${this.config.filmsRootDir}/2D/${film_data.year}`;
       savingPath = normalize(savingPath);
       this.logger.debug(`Saving path: "${savingPath}"`);
       await this.savingPathPrepare(savingPath);

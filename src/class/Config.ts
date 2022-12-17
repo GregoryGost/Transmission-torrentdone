@@ -65,6 +65,14 @@ class Config {
    */
   public readonly mediaPath: string;
   /**
+   * The name of the directory where TV shows will be saved
+   */
+  public readonly serialsRootDir: string;
+  /**
+   * The name of the directory where the movies will be saved
+   */
+  public readonly filmsRootDir: string;
+  /**
    * Allowed extensions for media files.
    * Default: `mkv,mp4,avi`
    */
@@ -127,6 +135,8 @@ class Config {
     this.port = Number(this.getParam('tcp_port'));
     this.allowedMediaExtensions = Config.extensionsRegexTemplate(this.getParam('allowed_media_extensions'));
     this.mediaPath = this.devmode ? normalize(`${this.rootPath}/tests/mnt/data/media`) : this.getParam('media_path');
+    this.serialsRootDir = this.getParam('serials_root_dir');
+    this.filmsRootDir = this.getParam('films_root_dir');
     // Transmission Environment
     this.trAppVersion = this.getParam('TR_APP_VERSION');
     this.trTorrentId = Number(this.getParam('TR_TORRENT_ID'));
@@ -147,6 +157,8 @@ class Config {
     this.nconf.defaults({
       node_env: 'production',
       media_path: '/mnt/data/media',
+      serials_root_dir: 'TV Shows',
+      films_root_dir: 'Movies',
       log_level: 'info',
       log_file_path: '/var/log/transmission/torrentdone.log',
       date_format: 'DD.MM.YYYY HH:mm:ss',

@@ -145,6 +145,8 @@ nano /opt/torrentdone/config.json
 - `log_level` - Уровень логирования. Default: `info`. Для режима разработки `trace`
 - `log_file_path` - Путь до файла сохранения логов. Default: `/var/log/transmission/torrentdone.log`
 - `media_path` - Путь хранения медиа файлов. Default `/mnt/data/media`
+- `serials_root_dir` - Название базовой директории для сохранения файлов сериалов. Default: `TV Shows`
+- `films_root_dir` - Название базовой директории для сохранения файлов фильмов. Default: `Movies`
 - `date_format` - Формат вывода даты в логе и в приложении. Для форматирования используется модуль [fecha](https://github.com/taylorhakes/fecha) Default: `DD.MM.YYYY HH:mm:ss` Example: 12.11.2022 21:54:03
 - `ip_address` - IP адрес для доступа к transmission. Default: `127.0.0.1`
 - `tcp_port` - TCP порт для доступа к transmission. Default: `9091`
