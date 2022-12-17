@@ -66,6 +66,11 @@ class Torrentdone {
    */
   private readonly logger: Logger;
   /**
+   * Connect commant for transmission-remote.
+   * Example: transmission-remote 127.0.0.1:9091 -n login:password
+   */
+  private readonly connect: string;
+  /**
    * Transmission-daemon version.
    * Example: `3.00`
    */
@@ -137,6 +142,7 @@ class Torrentdone {
   constructor(config: Config, logger: Logger) {
     this.config = config;
     this.logger = logger;
+    this.connect = this.connectCommandCreate();
     this.TR_APP_VERSION = this.config.trAppVersion;
     this.TR_TORRENT_ID = this.config.trTorrentId;
     this.TR_TORRENT_NAME = this.config.trTorrentName;
@@ -152,18 +158,24 @@ class Torrentdone {
   }
 
   /**
+   * Basic constructor for creating a command to connect to a transmission-remote.
+   * Example: `transmission-remote 127.0.0.1:9091 -n login:password`
+   * @returns connect command
+   */
+  private connectCommandCreate(): string {
+    return `transmission-remote ${this.config.ipAddress}:${this.config.port} --auth ${this.config.login}:${this.config.password}`;
+  }
+
+  /**
    * Create Shell move command transmission-daemon
    * MAN: https://www.mankier.com/1/transmission-remote
-   * Example: transmission-remote ipAddress:port -n login:password -t ID --move /mnt/data/media/etc
+   * Example: Remove torrent 1 and 2, and also delete local data for torrent 2
+   * `transmission-remote hostname -t 1 --remove -t 2 --remove-and-delete`
    * @param saving_path - saved path media file
    * @returns - command
    */
   private moveCommandCreate(saving_path: string): string {
-    const bin = 'transmission-remote';
-    const target = `${this.config.ipAddress}:${this.config.port}`;
-    const auth = `${this.config.login}:${this.config.password}`;
-    const command = `${bin} ${target} -n ${auth} -t ${this.TR_TORRENT_ID} --move ${saving_path}`;
-    return command;
+    return `${this.connect} --torrent ${this.TR_TORRENT_ID} --move "${saving_path}"`;
   }
 
   /**
