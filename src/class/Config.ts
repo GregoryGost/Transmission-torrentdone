@@ -22,6 +22,11 @@ class Config {
    */
   public readonly devmode: boolean;
   /**
+   * This Application version
+   * Read from base file package.json
+   */
+  public readonly appVersion: string;
+  /**
    * Log level.
    * if devmode(true) = `trace`.
    * Variants: (`trace` | `debug` | `info` | `warn` | `error`).
@@ -128,6 +133,7 @@ class Config {
     this.login = this.getParam('login');
     this.password = this.getParam('password');
     this.devmode = this.getParam('node_env') === 'development';
+    this.appVersion = this.getParam('version');
     this.logLevel = this.devmode ? 'trace' : this.getParam('log_level');
     this.dateFormat = this.getParam('date_format');
     this.logFilePath = this.getParam('log_file_path');
@@ -154,6 +160,7 @@ class Config {
     if (config_file_path !== undefined) configFile = config_file_path;
     this.nconf.env();
     this.nconf.file('config', configFile);
+    this.nconf.file('package', normalize(`${this.rootPath}/package.json`));
     this.nconf.defaults({
       node_env: 'production',
       media_path: '/mnt/data/media',

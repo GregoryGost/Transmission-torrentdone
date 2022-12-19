@@ -20,6 +20,7 @@ interface SerialDataI {
  * Example year: **2022**
  */
 interface FilmDataI {
+  name: string;
   year: string;
   three_d: boolean;
 }
@@ -29,7 +30,7 @@ interface FilmDataI {
  *
  * Tested on:
  * Debian GNU/Linux 11.5 (bullseye)
- * transmission-daemon 3.00 (14714)
+ * transmission 3.00 (bb6b5a062e)
  *
  * Example naming serials: (match regex_ser)
  *   File: The.Mandalorian.S02E08.1080p.rus.LostFilm.TV.mkv
@@ -289,7 +290,8 @@ class Torrentdone {
   private extractSerialData(file_name: string): SerialDataI {
     const regexExec = this.regexNameSeason.exec(file_name);
     if (regexExec === null) throw new Error(`No data extracted for file "${file_name}"`);
-    const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s|\_)/g, ' ');
+    // const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s|\_)/g, ' ');
+    const name: string = Torrentdone.capitalize(regexExec[1]);
     const season = `Season ${regexExec[3]}`;
     const data: SerialDataI = {
       name: name,
@@ -310,15 +312,17 @@ class Torrentdone {
   private extractFilmData(file_name: string): FilmDataI {
     const regexExec = this.regexNameYear.exec(file_name);
     if (regexExec === null) throw new Error(`No data extracted for file "${file_name}"`);
-    const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s|\_)/g, ' ');
+    // const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s|\_)/g, ' ');
+    const name: string = Torrentdone.capitalize(regexExec[1]);
     const year = regexExec[3];
     const regexThreeD = /\_3D\_/i;
     const data: FilmDataI = {
+      name: name,
       year: year,
       three_d: regexThreeD.test(name),
     };
     this.logger.debug(
-      `Extracted data (${this.RELEASER}): name="${name}" year="${data.year}" three_d="${data.three_d}"`
+      `Extracted data (${this.RELEASER}): name="${data.name}" year="${data.year}" three_d="${data.three_d}"`
     );
     this.logger.debug(`Extracted film data regex: "${this.regexNameYear}"`);
     return data;
@@ -338,13 +342,15 @@ class Torrentdone {
     const regexNameYearLostfilm = /^(.+).+(1080|720).+(lostfilm).+$/i;
     const regexExec = regexNameYearLostfilm.exec(file_name);
     if (regexExec === null) throw new Error(`No data extracted for file "${file_name}"`);
-    const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s|\_)/g, ' ');
+    // const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s|\_)/g, ' ');
+    const name: string = Torrentdone.capitalize(regexExec[1]);
     const year = new Date().getFullYear().toString();
     const data: FilmDataI = {
+      name: name,
       year: year,
       three_d: false,
     };
-    this.logger.debug(`Extracted data (${this.RELEASER}): name="${name}" year="${data.year}" only 2D`);
+    this.logger.debug(`Extracted data (${this.RELEASER}): name="${data.name}" year="${data.year}" only 2D`);
     return data;
   }
 
@@ -525,7 +531,7 @@ class Torrentdone {
    */
   private startInfo(): void {
     this.logger.info('##############################################################################################');
-    this.logger.info(`transmission-torrentdone: 2.0.0`);
+    this.logger.info(`transmission-torrentdone: "${this.config.appVersion}"`);
     this.logger.info(`TORRENT ID: "${this.TR_TORRENT_ID}" FINISH: START PROCESS ...`);
     this.logger.info('==============================================================================================');
     this.logger.info(`VER:   "Transmission version - ${this.TR_APP_VERSION}"`);
