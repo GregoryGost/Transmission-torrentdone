@@ -8,6 +8,46 @@
 
 Создано в рамках статьи для блога: [Домашний Сервер: Часть 4 – Настройка Transmission daemon в контейнере LXC Proxmox-VE](https://gregory-gost.ru/domashnij-server-chast-4-nastrojka-transmission-daemon-v-kontejnere-lxc-proxmox-ve/)
 
+Пример `Debug` лога обработки одного файла
+
+```log
+[19.12.2022 23:06:27] : [info] : ##############################################################################################
+[19.12.2022 23:06:27] : [info] : transmission-torrentdone: "2.0.0"
+[19.12.2022 23:06:27] : [info] : TORRENT ID: "1" FINISH: START PROCESS ...
+[19.12.2022 23:06:27] : [info] : ==============================================================================================
+[19.12.2022 23:06:27] : [info] : VER:   "Transmission version - 3.00"
+[19.12.2022 23:06:27] : [info] : DIR:   "/mnt/data/download"
+[19.12.2022 23:06:27] : [info] : NAME:  "Shantaram.S01E12.1080p.rus.LostFilm.TV.mkv"
+[19.12.2022 23:06:27] : [info] : DTIME: "Mon Dec 19 23:06:26 2022"
+[19.12.2022 23:06:27] : [info] : HASH:  "58de8ec377668b60610a58fd541b645df4821b3f"
+[19.12.2022 23:06:27] : [info] : ==============================================================================================
+[19.12.2022 23:06:27] : [info] : ================================
+[19.12.2022 23:06:27] : [info] : Element: "Shantaram.S01E12.1080p.rus.LostFilm.TV.mkv" is a FILE
+[19.12.2022 23:06:27] : [debug] : Element: file extension: ".mkv"
+[19.12.2022 23:06:27] : [debug] : Element: full path: "/mnt/data/download/Shantaram.S01E12.1080p.rus.LostFilm.TV.mkv"
+[19.12.2022 23:06:27] : [debug] : Check Releaser for: "Shantaram.S01E12.1080p.rus.LostFilm.TV.mkv"
+[19.12.2022 23:06:27] : [info] : Releaser found: "LostFilm"
+[19.12.2022 23:06:27] : [debug] : Releaser regex: "/lostfilm/i"
+[19.12.2022 23:06:27] : [debug] : RELEASER: lostfilm
+[19.12.2022 23:06:27] : [debug] : Check Serial or Film: "Shantaram.S01E12.1080p.rus.LostFilm.TV.mkv"
+[19.12.2022 23:06:27] : [info] : File "Shantaram.S01E12.1080p.rus.LostFilm.TV.mkv" is a SERIAL
+[19.12.2022 23:06:27] : [debug] : File check is regex: "/(s[0-9]{2}e[0-9]{2}).+(lostfilm\.tv)/i"
+[19.12.2022 23:06:27] : [debug] : Extracted data (lostfilm): name="Shantaram" season="Season 01"
+[19.12.2022 23:06:27] : [debug] : Extracted serial data regex: "/(.+)\.(s([0-9]{2}))/i"
+[19.12.2022 23:06:27] : [debug] : Processing serial file: "Shantaram.S01E12.1080p.rus.LostFilm.TV.mkv"
+[19.12.2022 23:06:27] : [debug] : Saving path: "/mnt/data/media/serials/Shantaram/Season 01"
+[19.12.2022 23:06:27] : [debug] : Saving path is exists
+[19.12.2022 23:06:27] : [info] : MOVE file "Shantaram.S01E12.1080p.rus.LostFilm.TV.mkv" to saving path "/mnt/data/media/serials/Shantaram/Season 01"
+[19.12.2022 23:06:27] : [debug] : Move command: "transmission-remote 127.0.0.1:9091 --auth login:password --torrent 1 --move "/mnt/data/media/serials/Shantaram/Season 01""
+[19.12.2022 23:06:27] : [debug] : Start moving file...
+[19.12.2022 23:06:27] : [debug] : execResult: 127.0.0.1:9091/transmission/rpc/ responded: "success"
+[19.12.2022 23:06:27] : [info] : File "Shantaram.S01E12.1080p.rus.LostFilm.TV.mkv" moving successfully. => END
+[19.12.2022 23:06:27] : [debug] : File final path: "/mnt/data/media/serials/Shantaram/Season 01/Shantaram.S01E12.1080p.rus.LostFilm.TV.mkv"
+[19.12.2022 23:06:27] : [info] : ==============================================================================================
+[19.12.2022 23:06:27] : [info] : TORRENT ID: "1" END PROCESS
+[19.12.2022 23:06:27] : [info] : ##############################################################################################
+```
+
 ## **Оглавление**
 
 <!--ts-->
@@ -33,6 +73,7 @@
 
 История версий:
 
+- v2.0.1 - (20.12.2022) Параметры перенесены из окружения в конфигурационный файл для удобства. Используется пакет `nconf`. Поправлены команды для `transmission-remote`
 - v2.0.0 - (12.01.2022) Полностью заменен файл **torrentdone.sh** на **NodeJS** проект. Изменена и расширена логика обработки, улучшено логирование (уровни info, debug, etc) и многое другое. Для разработчиков доступно тестирование через Jest.
 
 &nbsp;
@@ -119,49 +160,40 @@ chown -R debian-transmission:debian-transmission torrentdone/
 chmod +x torrentdone/dist/main.js
 ```
 
-Задаем постоянные переменные через дополнительные определения настроек в systemd, чтобы не трогать базовый systemd файл.
+Создаем файл настроек и задаем свои параметры
 
 ```shell
-mkdir /etc/systemd/system/transmission-daemon.service.d
-nano /etc/systemd/system/transmission-daemon.service.d/torrentdone_env.conf
+nano /opt/torrentdone/config.json
 ```
 
-```shell
-[Service]
-Environment="TRANSMISSION_LOGIN=login"
-Environment="TRANSMISSION_PASSWORD=password"
+```json
+{
+  "login": "transmission_login",
+  "password": "1234567890"
+}
 ```
 
-Возможные переменные окружения для настройки:
+Возможные параметры для конфигурирования
 
 Обязательные:
 
-- `TRANSMISSION_LOGIN` - Логин авторизации для transmission-remote. Прописан в файле `settings.json` самого Transmission. Как правило располагается по пути `/etc/transmission-daemon/`
-- `TRANSMISSION_PASSWORD` - Пароль авторизации для transmission-remote
+- `login` - Логин авторизации для transmission-remote. Прописан в файле `settings.json` самого Transmission. Как правило располагается по пути `/etc/transmission-daemon/`
+- `password` - Пароль авторизации для transmission-remote
 
 Опциональные:
 
-- `NODE_ENV` - Режим использования приложения. Задать `development` если режим разработки. Default: `production`
-- `STORE_MEDIA_PATH` - Путь хранения медиа файлов. Default `/mnt/data/media`
-- `ALLOWED_MEDIA_EXTENSIONS` - Расширения файлов перечисленные через запятую для которых осуществляется обработка. Default: `mkv,mp4,avi`
-- `TORRENTDONE_LOG_LEVEL` - Уровень логирования. Default: `info`. Для режима разработки `trace`
-- `TORRENTDONE_LOG_FILE_PATH` - Путь до файла сохранения логов. Default: `/var/log/transmission/torrentdone.log`
-- `LOG_DATE_FORMAT` - Формат вывода даты в логе. Default: `DD.MM.YYYY HH:mm:ss` Example: 12.11.2022 21:54:03
-- `TRANSMISSION_IP_ADDRESS` - IP адрес для доступа к transmission. Default: `127.0.0.1`
-- `TRANSMISSION_TCP_PORT` - TCP порт для доступа к transmission. Default: `9091`
+- `node_env` - Режим использования приложения. Задать `development` если режим разработки. Default: `production`
+- `log_level` - Уровень логирования. Default: `info`. Для режима разработки `trace`
+- `log_file_path` - Путь до файла сохранения логов. Default: `/var/log/transmission/torrentdone.log`
+- `media_path` - Путь хранения медиа файлов. Default `/mnt/data/media`
+- `serials_root_dir` - Название базовой директории для сохранения файлов сериалов. Default: `TV Shows`
+- `films_root_dir` - Название базовой директории для сохранения файлов фильмов. Default: `Movies`
+- `date_format` - Формат вывода даты в логе и в приложении. Для форматирования используется модуль [fecha](https://github.com/taylorhakes/fecha) Default: `DD.MM.YYYY HH:mm:ss` Example: 12.11.2022 21:54:03
+- `ip_address` - IP адрес для доступа к transmission. Default: `127.0.0.1`
+- `tcp_port` - TCP порт для доступа к transmission. Default: `9091`
+- `allowed_media_extensions` - Расширения файлов перечисленные через запятую для которых осуществляется обработка. Default: `mkv,mp4,avi`
 
-Перезапускаем сервис с новыми переменными и смотрим, что они применились.
-
-```shell
-systemctl daemon-reload
-systemctl restart transmission-daemon.service
-systemctl status transmission-daemon.service
-Loaded: loaded (/lib/systemd/system/transmission-daemon.service; enabled; vendor preset: enabled)
-Drop-In: /etc/systemd/system/transmission-daemon.service.d
-         └─torrentdone_env.conf
-```
-
-Важно! После любого изменения значения переменных, необходимо перезапускать сервис transmission-daemon через `daemon-reload` и `restart`
+Настройки будут считываться при каждом запуске скрипта по окончании процесса скачивания торрента.
 
 ### **Алгоритм обработки торрентов**
 
@@ -172,7 +204,7 @@ Drop-In: /etc/systemd/system/transmission-daemon.service.d
 ### **Правила именования торрентов для корректной работы скрипта**
 
 Нельзя просто так добавлять торренты в **Transmission remote GUI** или кидать торрент файлы в папку отслеживания с данным скриптом.  
-Если вы хотите, чтобы парсинг файлов и папок выполнялся корректно, необходимо соблюдать простые правила именования.
+Если вы хотите, чтобы парсинг файлов и папок выполнялся корректно, необходимо соблюдать простые правила именования торрентов.
 
 #### **Сериалы**
 

@@ -20,6 +20,7 @@ interface SerialDataI {
  * Example year: **2022**
  */
 interface FilmDataI {
+  name: string;
   year: string;
   three_d: boolean;
 }
@@ -29,7 +30,7 @@ interface FilmDataI {
  *
  * Tested on:
  * Debian GNU/Linux 11.5 (bullseye)
- * transmission-daemon 3.00 (14714)
+ * transmission 3.00 (bb6b5a062e)
  *
  * Example naming serials: (match regex_ser)
  *   File: The.Mandalorian.S02E08.1080p.rus.LostFilm.TV.mkv
@@ -37,22 +38,23 @@ interface FilmDataI {
  *   File: Some Name (2022).mkv
  *
  * Algorithm:
- * ```shell
+ *
+ * ```sh
  * ── Check File or Directory
  *   ├─ IS FILE
- *   | └─ Check file is Serial or Film
- *   |   ├─ IS SERIAL => serialprocess()
- *   |   └─ IS FILM
- *   |     └─ Check 2D or 3D
- *   |       ├─ IS 2D => filmprocess()
- *   |       └─ IS 3D => filmprocess()
- *   ├─ IS DIRECTORY
- *     └─ Check torrent is Serial or Film (we cannot influence the name of the file in the directory)
- *       ├─ IS SERIAL => serialprocess()
- *       └─ IS FILM
- *         └─ Check 2D or 3D
- *           ├─ IS 2D => filmprocess()
- *           └─ IS 3D => filmprocess()
+ *   | └─ Check file extensions (mkv,avi,mp4)
+ *   |   └─ Check Releaser (LostFilm, NovaFilm, etc ...)
+ *   |     └─ Check Serial or Film
+ *   |       ├─ IS SERIAL => serialProcess()
+ *   |       | ├─ If season directory (DIR_FLAG) - copy torrent files
+ *   |       | └─ Else simple file - move torrent file
+ *   |       └─ IS FILM   => filmProcess()
+ *   |         └─ Check 2D or 3D
+ *   |           ├─ If directory (DIR_FLAG) - copy torrent files
+ *   |           └─ Else simple file - move torrent file
+ *   └─ IS DIRECTORY (set DIR_FLAG)
+ *     └─ Foreach directory
+ *       └─ Repeat until we find the File in the directory (back to IS FILE processing)
  * ```
  */
 class Torrentdone {
@@ -65,48 +67,53 @@ class Torrentdone {
    */
   private readonly logger: Logger;
   /**
+   * Connect commant for transmission-remote.
+   * Example: transmission-remote 127.0.0.1:9091 -n login:password
+   */
+  private readonly connect: string;
+  /**
    * Transmission-daemon version.
-   * Example: 3.00
+   * Example: `3.00`
    */
   public readonly TR_APP_VERSION: string;
   /**
    * Torrent identificator (simple number).
-   * Example: 999
+   * Example: `999`
    */
-  public readonly TR_TORRENT_ID: string;
+  public readonly TR_TORRENT_ID: number;
   /**
    * Torrent name (like at view in Transmission Remote GUI interface)
    */
   public readonly TR_TORRENT_NAME: string;
   /**
    * Now torrent directory
-   * Example: /mnt/data/downloads
+   * Example: `/mnt/data/downloads`
    */
   public readonly TR_TORRENT_DIR: string;
   /**
    * Now torrent hash
-   * Example: 36303f6192ce5c156084d05381a9138083b6180e
+   * Example: `36303f6192ce5c156084d05381a9138083b6180e`
    */
   public readonly TR_TORRENT_HASH: string;
   /**
    * Date and time torrentdone script start
-   * Example: Fri Nov  4 20:23:27 2022
+   * Example: `Fri Nov  4 20:23:27 2022`
    */
   public readonly TR_TIME_LOCALTIME: string;
   /**
-   * A comma-delimited list of the torrent's labels
-   * Example: TODO ???
+   * A comma-delimited list of the torrent's labels.
+   * Example: `foo,bar,baz` ???
    */
   public readonly TR_TORRENT_LABELS: string;
   /**
-   * ONLY FOR TRANSMISSION >= 4.0.0
-   * Number of bytes that were downloaded for this torrent
-   * Example: TODO ???
+   * ONLY FOR TRANSMISSION >= 4.0.0.
+   * Number of bytes that were downloaded for this torrent.
+   * Example: `123456789` ???
    */
-  public readonly TR_TORRENT_BYTES_DOWNLOADED: string | undefined;
+  public readonly TR_TORRENT_BYTES_DOWNLOADED: number | undefined;
   /**
-   * A comma-delimited list of the torrent's trackers' announce URLs
-   * Example: TODO ???
+   * A comma-delimited list of the torrent's trackers' announce URLs.
+   * Example: `https://foo.com,https://bar.org,https://baz.com` ???
    */
   public readonly TR_TORRENT_TRACKERS: string | undefined;
   /**
@@ -133,93 +140,43 @@ class Torrentdone {
   private readonly regexNameSeason: RegExp = /(.+)\.(s([0-9]{2}))/i;
   private readonly regexNameYear: RegExp = /^(.+)\s{0,1}([.(_\-\s]((19|20)[0-9]{2})[.)_\-\s]).+$/i;
 
-  constructor(
-    config: Config,
-    logger: Logger,
-    tr_app_version?: string,
-    tr_torrent_id?: string,
-    tr_torrent_name?: string,
-    tr_torrent_dir?: string,
-    tr_torrent_hash?: string,
-    tr_time_localtime?: string,
-    tr_torrent_labels?: string,
-    tr_torrent_bytes_downloaded?: string,
-    tr_torrent_trackers?: string
-  ) {
+  constructor(config: Config, logger: Logger) {
     this.config = config;
     this.logger = logger;
-    this.TR_APP_VERSION = tr_app_version !== undefined ? tr_app_version : '';
-    this.TR_TORRENT_ID = tr_torrent_id !== undefined ? tr_torrent_id : '';
-    this.TR_TORRENT_NAME = tr_torrent_name !== undefined ? tr_torrent_name : '';
-    this.TR_TORRENT_DIR = tr_torrent_dir !== undefined ? tr_torrent_dir : '';
-    this.TR_TORRENT_HASH = tr_torrent_hash !== undefined ? tr_torrent_hash : '';
-    this.TR_TIME_LOCALTIME = tr_time_localtime !== undefined ? tr_time_localtime : '';
-    this.TR_TORRENT_LABELS = tr_torrent_labels !== undefined ? tr_torrent_labels : '';
-    this.TR_TORRENT_BYTES_DOWNLOADED = tr_torrent_bytes_downloaded;
-    this.TR_TORRENT_TRACKERS = tr_torrent_trackers;
+    this.connect = this.connectCommandCreate();
+    this.TR_APP_VERSION = this.config.trAppVersion;
+    this.TR_TORRENT_ID = this.config.trTorrentId;
+    this.TR_TORRENT_NAME = this.config.trTorrentName;
+    this.TR_TORRENT_DIR = this.config.trTorrentDir;
+    this.TR_TORRENT_HASH = this.config.trTorrentHash;
+    this.TR_TIME_LOCALTIME = this.config.trTimeLocaltime;
+    this.TR_TORRENT_LABELS = this.config.trTorrentLabels;
+    this.TR_TORRENT_BYTES_DOWNLOADED = this.config.trTorrentBytesDownloaded;
+    this.TR_TORRENT_TRACKERS = this.config.trTorrentTrackers;
     this.DIR_FLAG = false;
     this.DIR_NAME = undefined;
     this.RELEASER = undefined;
-    this.checkVariable();
   }
 
   /**
-   * Check transmission-daemon variables/parameters for start work
-   * variables pass to Environment
-   * transmission-daemon passes 7 variables to script / 9 for transmission-daemon 4.X.X
-   * More info: <https://github.com/transmission/transmission/blob/4.0.0-beta.1/docs/Scripts.md>
-   *
-   * ```sh
-   * TR_APP_VERSION: '3.00',
-   * TR_TIME_LOCALTIME: 'Sun Nov  6 04:31:04 2022',
-   * TR_TORRENT_DIR: '/mnt/data/download',
-   * TR_TORRENT_HASH: '9ef9e27600d656140ba016aa81460fe2e518cbda',
-   * TR_TORRENT_ID: '3',
-   * TR_TORRENT_NAME: 'Some file name',
-   * TR_TORRENT_LABELS: ''
-   * ```
-   * New for transmission 4.0 `TR_TORRENT_BYTES_DOWNLOADED` and `TR_TORRENT_TRACKERS`
-   *
-   * ```sh
-   * TR_APP_VERSION: '4.0.0',
-   * TR_TIME_LOCALTIME: 'Sun Nov  6 04:31:04 2022',
-   * TR_TORRENT_BYTES_DOWNLOADED: '5456454',
-   * TR_TORRENT_DIR: '/mnt/data/download',
-   * TR_TORRENT_HASH: '9ef9e27600d656140ba016aa81460fe2e518cbda',
-   * TR_TORRENT_ID: '3',
-   * TR_TORRENT_LABELS: '',
-   * TR_TORRENT_NAME: 'Some file name',
-   * TR_TORRENT_TRACKERS: ''
-   * ```
-   *
+   * Basic constructor for creating a command to connect to a transmission-remote.
+   * Example: `transmission-remote 127.0.0.1:9091 -n login:password`
+   * @returns connect command
    */
-  private checkVariable(): void {
-    if (
-      this.TR_APP_VERSION.length < 1 ||
-      this.TR_TIME_LOCALTIME.length < 1 ||
-      this.TR_TORRENT_DIR.length < 1 ||
-      this.TR_TORRENT_ID.length < 1 ||
-      this.TR_TORRENT_NAME.length < 1 ||
-      this.TR_TORRENT_HASH.length < 1
-    )
-      throw new Error(
-        `One or more parameters do not match the requirements: TR_APP_VERSION - "${this.TR_APP_VERSION}", TR_TIME_LOCALTIME - "${this.TR_TIME_LOCALTIME}", TR_TORRENT_ID - "${this.TR_TORRENT_ID}", TR_TORRENT_DIR - "${this.TR_TORRENT_DIR}", TR_TORRENT_NAME - "${this.TR_TORRENT_NAME}", TR_TORRENT_HASH - "${this.TR_TORRENT_HASH}"`
-      );
+  private connectCommandCreate(): string {
+    return `transmission-remote ${this.config.ipAddress}:${this.config.port} --auth ${this.config.login}:${this.config.password}`;
   }
 
   /**
    * Create Shell move command transmission-daemon
    * MAN: https://www.mankier.com/1/transmission-remote
-   * Example: transmission-remote ipAddress:port -n login:password -t ID --move /mnt/data/media/etc
+   * Example: Remove torrent 1 and 2, and also delete local data for torrent 2
+   * `transmission-remote hostname -t 1 --remove -t 2 --remove-and-delete`
    * @param saving_path - saved path media file
    * @returns - command
    */
   private moveCommandCreate(saving_path: string): string {
-    const bin = 'transmission-remote';
-    const target = `${this.config.ipAddress}:${this.config.port}`;
-    const auth = `${this.config.login}:${this.config.password}`;
-    const command = `${bin} ${target} -n ${auth} -t ${this.TR_TORRENT_ID} --move ${saving_path}`;
-    return command;
+    return `${this.connect} --torrent ${this.TR_TORRENT_ID} --move "${saving_path}"`;
   }
 
   /**
@@ -326,15 +283,16 @@ class Torrentdone {
 
   /**
    * Extract data for serials
-   * /mnt/data/media/serials/$SERIALNAME/Season_$SEASON/
+   * /mnt/data/media/serials/$SERIALNAME/Season $SEASON/
    * @param file_name - File name
    * @returns - serial data
    */
   private extractSerialData(file_name: string): SerialDataI {
     const regexExec = this.regexNameSeason.exec(file_name);
     if (regexExec === null) throw new Error(`No data extracted for file "${file_name}"`);
-    const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s)/g, '_');
-    const season = `Season_${regexExec[3]}`;
+    // const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s|\_)/g, ' ');
+    const name: string = Torrentdone.capitalize(regexExec[1]);
+    const season = `Season ${regexExec[3]}`;
     const data: SerialDataI = {
       name: name,
       season: season,
@@ -354,15 +312,17 @@ class Torrentdone {
   private extractFilmData(file_name: string): FilmDataI {
     const regexExec = this.regexNameYear.exec(file_name);
     if (regexExec === null) throw new Error(`No data extracted for file "${file_name}"`);
-    const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s)/g, '_');
+    // const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s|\_)/g, ' ');
+    const name: string = Torrentdone.capitalize(regexExec[1]);
     const year = regexExec[3];
     const regexThreeD = /\_3D\_/i;
     const data: FilmDataI = {
+      name: name,
       year: year,
       three_d: regexThreeD.test(name),
     };
     this.logger.debug(
-      `Extracted data (${this.RELEASER}): name="${name}" year="${data.year}" three_d="${data.three_d}"`
+      `Extracted data (${this.RELEASER}): name="${data.name}" year="${data.year}" three_d="${data.three_d}"`
     );
     this.logger.debug(`Extracted film data regex: "${this.regexNameYear}"`);
     return data;
@@ -382,13 +342,15 @@ class Torrentdone {
     const regexNameYearLostfilm = /^(.+).+(1080|720).+(lostfilm).+$/i;
     const regexExec = regexNameYearLostfilm.exec(file_name);
     if (regexExec === null) throw new Error(`No data extracted for file "${file_name}"`);
-    const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s)/g, '_');
+    // const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s|\_)/g, ' ');
+    const name: string = Torrentdone.capitalize(regexExec[1]);
     const year = new Date().getFullYear().toString();
     const data: FilmDataI = {
+      name: name,
       year: year,
       three_d: false,
     };
-    this.logger.debug(`Extracted data (${this.RELEASER}): name="${name}" year="${data.year}" only 2D`);
+    this.logger.debug(`Extracted data (${this.RELEASER}): name="${data.name}" year="${data.year}" only 2D`);
     return data;
   }
 
@@ -417,6 +379,16 @@ class Torrentdone {
 
   /**
    * Serial/TVmovie file processing
+   *
+   * Plex: Naming and Organizing Your TV Show Files (from Plex)
+   * https://support.plex.tv/articles/naming-and-organizing-your-tv-show-files/
+   *
+   * ```sh
+   * /TV Shows
+   *    /Doctor Who
+   *       /Season 01
+   * ```
+   *
    * @param file_name - Torrent file name only
    * @param file_path - Torrent file full path
    */
@@ -426,7 +398,7 @@ class Torrentdone {
       // Extracting individual data for the releaser (LostFilm, NovaFilm, etc)
       // Preparing the save directory
       const savingPath: string = normalize(
-        this.config.mediaPath + `/serials/${serial_data.name}/${serial_data.season}`
+        `${this.config.mediaPath}/${this.config.serialsRootDir}/${serial_data.name}/${serial_data.season}`
       );
       this.logger.debug(`Saving path: "${savingPath}"`);
       await this.savingPathPrepare(savingPath);
@@ -449,6 +421,27 @@ class Torrentdone {
 
   /**
    * Film/Movie file processing
+   *
+   * !!! The application does not use the recommended naming from Plex !!!
+   *
+   * Naming and organizing your Movie files (from Plex)
+   * https://support.plex.tv/articles/naming-and-organizing-your-movie-media-files/
+   *
+   * ```sh
+   * /Movies
+   *    /Blade Runner (1982)
+   *       Blade Runner (1982).mp4
+   *    /Batman Begins (2005)
+   *       Batman Begins (2005).mp4
+   *       Batman Begins (2005).en.srt
+   *       poster.jpg
+   * ```
+   * or
+   * ```sh
+   * /Movies
+   *    Avatar (2009).mkv
+   * ```
+   *
    * @param file_name - Torrent file name only
    * @param file_path - Torrent file full path
    */
@@ -457,8 +450,8 @@ class Torrentdone {
       this.logger.debug(`Processing film file: "${file_name}"`);
       // Preparing the save directory
       let savingPath: string = this.config.mediaPath;
-      if (film_data.three_d) savingPath += `/films/3D/${film_data.year}`;
-      else savingPath += `/films/2D/${film_data.year}`;
+      if (film_data.three_d) savingPath += `/${this.config.filmsRootDir}/3D/${film_data.year}`;
+      else savingPath += `/${this.config.filmsRootDir}/2D/${film_data.year}`;
       savingPath = normalize(savingPath);
       this.logger.debug(`Saving path: "${savingPath}"`);
       await this.savingPathPrepare(savingPath);
@@ -513,10 +506,8 @@ class Torrentdone {
       this.logger.debug(`Start moving file...`);
       const finalPath: string = normalize(`${saving_path}/${file_name}`);
       const regexSuccess = /success/i;
-      const execResult: string = execSync(move_command, { timeout: 2000, encoding: 'utf8' }).replace(
-        /(\r\n|\n|\r)/gm,
-        ''
-      );
+      let execResult: string = await Torrentdone.command(move_command);
+      execResult = execResult.replace(/(\r\n|\n|\r)/gm, '');
       // 127.0.0.1:9091/transmission/rpc/ responded: "success"
       this.logger.debug(`execResult: ${execResult}`);
       if (!regexSuccess.test(execResult)) {
@@ -540,6 +531,7 @@ class Torrentdone {
    */
   private startInfo(): void {
     this.logger.info('##############################################################################################');
+    this.logger.info(`transmission-torrentdone: "${this.config.appVersion}"`);
     this.logger.info(`TORRENT ID: "${this.TR_TORRENT_ID}" FINISH: START PROCESS ...`);
     this.logger.info('==============================================================================================');
     this.logger.info(`VER:   "Transmission version - ${this.TR_APP_VERSION}"`);
@@ -548,7 +540,7 @@ class Torrentdone {
     this.logger.info(`DTIME: "${this.TR_TIME_LOCALTIME}"`);
     this.logger.info(`HASH:  "${this.TR_TORRENT_HASH}"`);
     if (this.TR_TORRENT_LABELS.length > 0) this.logger.info(`LABELS:  "${this.TR_TORRENT_LABELS}"`);
-    if (this.TR_TORRENT_BYTES_DOWNLOADED !== undefined && this.TR_TORRENT_BYTES_DOWNLOADED.length > 0)
+    if (this.TR_TORRENT_BYTES_DOWNLOADED !== undefined && this.TR_TORRENT_BYTES_DOWNLOADED > 0)
       this.logger.info(`BYTES:  "${this.TR_TORRENT_BYTES_DOWNLOADED}"`);
     if (this.TR_TORRENT_TRACKERS !== undefined && this.TR_TORRENT_TRACKERS.length > 0)
       this.logger.info(`TRACKERS:  "${this.TR_TORRENT_TRACKERS}"`);
@@ -622,25 +614,6 @@ class Torrentdone {
   }
 
   /**
-   * [Static]
-   * Check torrent is file or directory
-   * @param path - torrent path
-   * @returns (boolean | undefined) - true: torrent is File, false: torrent is Directory / undefined - not File, not Directory
-   */
-  private static async isFileOrDirectoryOrUnknown(path: string): Promise<boolean | undefined> {
-    try {
-      const stat: Stats = lstatSync(path);
-      const isFile: boolean = stat.isFile();
-      const isDirectory: boolean = stat.isDirectory();
-      if (isFile) return true;
-      if (isDirectory) return false;
-      return undefined;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  /**
    * Check torrent is File or is Directory or Unknown type
    * @param element_path - torrent path
    */
@@ -705,6 +678,40 @@ class Torrentdone {
   }
 
   /**
+   * [Static]
+   * Execution connect command to a transmission-remote.
+   * @param command - Command to a connect
+   * @returns Execution result
+   */
+  private static async command(command: string): Promise<string> {
+    try {
+      return execSync(command, { timeout: 2000, encoding: 'utf8' });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * [Static]
+   * Check torrent is file or directory
+   * @param path - torrent path
+   * @returns (boolean | undefined) - true: torrent is File, false: torrent is Directory / undefined - not File, not Directory
+   */
+  private static async isFileOrDirectoryOrUnknown(path: string): Promise<boolean | undefined> {
+    try {
+      const stat: Stats = lstatSync(path);
+      const isFile: boolean = stat.isFile();
+      const isDirectory: boolean = stat.isDirectory();
+      if (isFile) return true;
+      if (isDirectory) return false;
+      return undefined;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * [Static]
    * Utility function. Capitalize first char in text
    * Example: paradox => Paradox
    * @param text - string

@@ -39,31 +39,29 @@ const addColorsOption: AbstractConfigOption = {
   },
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const formatMeta = (meta: any) => {
-  // You can format the splat yourself
-  const splat = meta[Symbol.for('splat')];
-  if (splat[0] !== undefined && splat.length > 0) {
-    return splat.length === 1 ? ` - [${JSON.stringify(splat[0])}]` : ` - [${JSON.stringify(splat)}]`;
-  }
-  return '';
-};
-
-const formatter = format.combine(
-  // format.colorize(),
-  format.timestamp({ format: 'DD.MM.YYYY HH:mm:ss' }),
-  format.printf(info => {
-    const { level, message, timestamp, ...meta } = info;
-    return `[${timestamp}] : [${level}] : ${message}` + `${formatMeta(meta)}`;
-  })
-);
-
 class Logger {
   private logger: winstonLogger;
   private transportConsole: transports.ConsoleTransportInstance;
   private transportFile: transports.FileTransportInstance;
 
-  constructor(log_level: string, log_file: string) {
+  constructor(log_level: string, log_file: string, date_format?: string) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const formatMeta = (meta: any) => {
+      // You can format the splat yourself
+      const splat = meta[Symbol.for('splat')];
+      if (splat[0] !== undefined && splat.length > 0) {
+        return splat.length === 1 ? ` - [${JSON.stringify(splat[0])}]` : ` - [${JSON.stringify(splat)}]`;
+      }
+      return '';
+    };
+    const formatter = format.combine(
+      // format.colorize(),
+      format.timestamp({ format: date_format ? date_format : 'DD.MM.YYYY HH:mm:ss' }),
+      format.printf(info => {
+        const { level, message, timestamp, ...meta } = info;
+        return `[${timestamp}] : [${level}] : ${message}` + `${formatMeta(meta)}`;
+      })
+    );
     this.transportConsole = new transports.Console({
       format: formatter,
     });

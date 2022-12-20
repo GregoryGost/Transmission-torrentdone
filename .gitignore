@@ -10,3 +10,4 @@ logs/
 # FILES
 *.env
 *.log
+config.json
