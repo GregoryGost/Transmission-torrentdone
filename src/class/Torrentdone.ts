@@ -6,11 +6,13 @@ import { Logger } from './Logger.js';
 
 /**
  * Base serial prepared data
- * Example name: **Paradox**
- * Example season: **Season_01**
+ * Example name: **Tom.Clancys.Jack.Ryan**
+ * Example directory name: **Tom Clancys Jack Ryan**
+ * Example season: **Season 01**
  */
 interface SerialDataI {
   name: string;
+  dirName: string;
   season: string;
 }
 
@@ -292,12 +294,16 @@ class Torrentdone {
     if (regexExec === null) throw new Error(`No data extracted for file "${file_name}"`);
     // const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s|\_)/g, ' ');
     const name: string = Torrentdone.capitalize(regexExec[1]);
+    const dirName: string = name.replace(/(\.|\s|\_)/g, ' ');
     const season = `Season ${regexExec[3]}`;
     const data: SerialDataI = {
       name: name,
+      dirName: dirName,
       season: season,
     };
-    this.logger.debug(`Extracted data (${this.RELEASER}): name="${data.name}" season="${data.season}"`);
+    this.logger.debug(
+      `Extracted data (${this.RELEASER}): name="${data.name}" dirName="${data.dirName}" season="${data.season}"`
+    );
     this.logger.debug(`Extracted serial data regex: "${this.regexNameSeason}"`);
     return data;
   }
@@ -398,7 +404,7 @@ class Torrentdone {
       // Extracting individual data for the releaser (LostFilm, NovaFilm, etc)
       // Preparing the save directory
       const savingPath: string = normalize(
-        `${this.config.mediaPath}/${this.config.serialsRootDir}/${serial_data.name}/${serial_data.season}`
+        `${this.config.mediaPath}/${this.config.serialsRootDir}/${serial_data.dirName}/${serial_data.season}`
       );
       this.logger.debug(`Saving path: "${savingPath}"`);
       await this.savingPathPrepare(savingPath);
