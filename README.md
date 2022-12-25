@@ -72,7 +72,9 @@
 Для его работы он должен быть настроен в файле конфигурации `settings.json` через параметры `script-torrent-done-enabled` и `script-torrent-done-filename`
 
 ```json
+"script-torrent-done-enabled": true,
 "script-torrent-done-filename": "/opt/torrentdone/dist/main.js",
+"umask": 0,
 ```
 
 История версий:
