@@ -203,8 +203,6 @@ nano /opt/torrentdone/config.json
 
 ### **Алгоритм обработки торрентов**
 
-&nbsp;
-
 ![Transmission_torrentdone_algorithm.png](./aux_data/Transmission_torrentdone_algorithm.png)
 
 ### **Правила именования торрентов для корректной работы скрипта**

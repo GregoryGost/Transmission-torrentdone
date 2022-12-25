@@ -157,7 +157,7 @@ class Config {
 
   private init(config_file_path?: string): void {
     let configFile: string = normalize(`${this.rootPath}/config.json`);
-    if (config_file_path !== undefined) configFile = config_file_path;
+    if (config_file_path !== undefined) configFile = normalize(config_file_path);
     this.nconf.env();
     this.nconf.file('config', configFile);
     this.nconf.file('package', normalize(`${this.rootPath}/package.json`));
@@ -210,15 +210,15 @@ class Config {
   private check(): void {
     const login: string = this.getParam('login');
     const password: string = this.getParam('password');
+    if (login === undefined || password === undefined) {
+      throw new Error('Login or password must be filled in config,json file or Environment');
+    }
     const trAppVersion: string = this.getParam('TR_APP_VERSION');
     const trTorrentId = Number(this.getParam('TR_TORRENT_ID'));
     const trTorrentName: string = this.getParam('TR_TORRENT_NAME');
     const trTorrentDir: string = this.getParam('TR_TORRENT_DIR');
     const trTorrentHash: string = this.getParam('TR_TORRENT_HASH');
     const trTimeLocaltime: string = this.getParam('TR_TIME_LOCALTIME');
-    if (login === undefined || password === undefined) {
-      throw new Error('Login or password must be filled in config file or Environment');
-    }
     if (
       trAppVersion === undefined ||
       trTorrentId === NaN ||
