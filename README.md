@@ -71,6 +71,10 @@
 Данное приложение выполняется после завершения скачивания каждого торрента в сервисе Transmission daemon  
 Для его работы он должен быть настроен в файле конфигурации `settings.json` через параметры `script-torrent-done-enabled` и `script-torrent-done-filename`
 
+```json
+"script-torrent-done-filename": "/opt/torrentdone/dist/main.js",
+```
+
 История версий:
 
 - v2.0.1 - (20.12.2022) Параметры перенесены из окружения в конфигурационный файл для удобства. Используется пакет `nconf`. Поправлены команды для `transmission-remote`
