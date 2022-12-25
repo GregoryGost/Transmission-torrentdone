@@ -206,6 +206,8 @@ class Config {
    * TR_TORRENT_NAME: 'Some file name',
    * TR_TORRENT_TRACKERS: ''
    * ```
+   *
+   * !!! The hashed password from the transmission settings file is not suitable for requests via transmission-remote
    */
   private check(): void {
     const login: string = this.getParam('login');
