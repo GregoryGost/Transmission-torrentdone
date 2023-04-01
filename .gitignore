@@ -1,0 +1,13 @@
+# DIRS
+node_modules/
+lib/
+coverage/
+logs/
+
+# IDE VSCode
+.vscode/
+
+# FILES
+*.env
+*.log
+config.json

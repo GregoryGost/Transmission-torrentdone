@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "esModuleInterop": true,
+    "target": "ESNext",
+    "moduleResolution": "Node",
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "isolatedModules": false,
+    "strict": true,
+    "noImplicitAny": true,
+    "useUnknownInCatchVariables": false,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": ".",
+    "newLine": "lf",
+    "types": ["node", "@types/jest"],
+    "typeRoots": ["./node_modules/@types"]
+  },
+  "ts-node": {
+    "esm": true
+  },
+  "lib": ["ESNext", "ESNext.asynciterable"],
+  "exclude": ["node_modules", "**/node_modules/*", "dist", "*.spec.ts"],
+  "include": ["./src/*.ts", "./src/**/*.ts"]
+}

@@ -1,0 +1,2 @@
+#!/usr/bin/node
+import{Config}from"./class/Config.js";import{Logger}from"./class/Logger.js";import{Torrentdone}from"./class/Torrentdone.js";const config=new Config,logger=new Logger(config.logLevel,config.logFilePath,config.dateFormat),torrentdone=new Torrentdone(config,logger);async function run(){await torrentdone.main()}run();

@@ -1,0 +1,19 @@
+{
+  "preset": "ts-jest/presets/default-esm",
+  "maxWorkers": 1,
+  "roots": ["./"],
+  "testEnvironment": "node",
+  "transform": {
+    "^.+\\.ts?$": "ts-jest"
+  },
+  "transformIgnorePatterns": ["./node_modules/", "./dist/"],
+  "coverageThreshold": {
+    "global": {
+      "branches": 90,
+      "functions": 90,
+      "lines": 95,
+      "statements": 90
+    }
+  },
+  "coverageReporters": ["json", "lcov", "text", "clover"]
+}
