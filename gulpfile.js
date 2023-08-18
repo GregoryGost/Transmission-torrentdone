@@ -3,22 +3,17 @@
 import gulp from 'gulp';
 import ts from 'gulp-typescript';
 import uglify from 'gulp-uglify';
-import pump from 'pump';
+import clean from 'gulp-clean';
 
-const tsProject = ts.createProject('./tsconfig.json');
-
-const handleError = done => {
-  return function (err) {
-    // eslint-disable-next-line no-console
-    console.error(err);
-    return done(err);
-  };
-};
-
-function tsCompile(done) {
-  pump([tsProject.src(), tsProject(), uglify(), gulp.dest('dist')], handleError(done));
+function cleanAll() {
+  return gulp.src(['./dist/'], { read: false, allowEmpty: true }).pipe(clean());
 }
 
-const build = gulp.series(tsCompile);
+function transpileTS() {
+  const tsproject = ts.createProject('./tsconfig.json');
+  return tsproject.src().pipe(tsproject()).pipe(uglify()).pipe(gulp.dest('./dist'));
+}
+
+const build = gulp.series(cleanAll, transpileTS);
 
 export { build as default };
