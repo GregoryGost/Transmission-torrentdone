@@ -134,12 +134,12 @@ class Torrentdone {
   /**
    * Regular Expressions for serial/tvshow definition
    */
-  private readonly regexSerial_Base: RegExp = /(serial|season|s[0-9]{2}e[0-9]{2})/i;
+  private readonly regexSerial_Base: RegExp = /(serial|season|[sS][0-9]{2}[\.\_\-]{0,1}[eE][0-9]{2})/i;
   private readonly regexFilm_Base: RegExp = /[.(_\-\s](19|20)[0-9]{2}[.)_\-\s]/i;
   private readonly regexSerial_Lostfilm: RegExp = /(s[0-9]{2}e[0-9]{2}).+(lostfilm\.tv)/i;
   private readonly regexSerial_Novafilm: RegExp = /(s[0-9]{2}e[0-9]{2}).+(novafilm\.tv)/i;
   private readonly regexFilm_Releaser: RegExp = /^((?!s[0-9]{2}e[0-9]{2}).)*$/i;
-  private readonly regexNameSeason: RegExp = /(.+)\.(s([0-9]{2}))/i;
+  private readonly regexNameSeason: RegExp = /(.+)\.([sS]([0-9]{2}))/i;
   private readonly regexNameYear: RegExp = /^(.+)\s{0,1}([.(_\-\s]((19|20)[0-9]{2})[.)_\-\s]).+$/i;
 
   constructor(config: Config, logger: Logger) {
