@@ -23,7 +23,7 @@ jobs:
 
       - name: New Main version tag
         id: new-main-version
-        uses: GregoryGost/version-tagger
+        uses: GregoryGost/version-tagger@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           prefix: 'v'
