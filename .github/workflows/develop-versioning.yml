@@ -1,4 +1,4 @@
-name: Develop Self Versioning
+name: Develop versioning
 
 on:
   push:
@@ -20,7 +20,7 @@ jobs:
 
       - name: New Develop version tag
         id: new-dev-version
-        uses: GregoryGost/version-tagger@v1
+        uses: GregoryGost/version-tagger
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           prefix: 'v'

@@ -1,4 +1,4 @@
-name: Main Self Versioning
+name: Main versioning
 
 on:
   pull_request:
@@ -23,7 +23,7 @@ jobs:
 
       - name: New Main version tag
         id: new-main-version
-        uses: GregoryGost/version-tagger@v1
+        uses: GregoryGost/version-tagger
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           prefix: 'v'
