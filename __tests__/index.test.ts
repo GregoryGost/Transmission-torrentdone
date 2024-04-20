@@ -11,6 +11,8 @@ describe('index.ts', () => {
   beforeAll(() => {
     mainMock = jest.spyOn(Torrentdone.prototype, 'main').mockImplementation();
     jest.spyOn(Config.prototype, 'check').mockImplementation();
+    // fix EACCES: permission denied, mkdir '/var/log/transmission'
+    jest.spyOn(Config.prototype, 'logFilePath', 'get').mockReturnValue('./var/log/transmission');
   });
   afterAll(() => {
     jest.clearAllMocks();
