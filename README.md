@@ -1,10 +1,14 @@
-# **Transmission script-torrent-done application**
+# **Transmission daemon torrent done application script**
 
 ![License](https://img.shields.io/github/license/GregoryGost/transmission-torrentdone)
 ![RepoSize](https://img.shields.io/github/repo-size/GregoryGost/transmission-torrentdone)
 ![CodeSize](https://img.shields.io/github/languages/code-size/GregoryGost/transmission-torrentdone)
 ![IssuesOpen](https://img.shields.io/github/issues-raw/GregoryGost/transmission-torrentdone)
 ![LatestRelease](https://img.shields.io/github/v/release/GregoryGost/transmission-torrentdone)
+![CI](https://github.com/GregoryGost/transmission-torrentdone/actions/workflows/ci.yml/badge.svg)
+[![Check dist/](https://github.com/GregoryGost/transmission-torrentdone/actions/workflows/check-dist.yml/badge.svg)](https://github.com/GregoryGost/transmission-torrentdone/actions/workflows/check-dist.yml)
+[![CodeQL](https://github.com/GregoryGost/transmission-torrentdone/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/GregoryGost/transmission-torrentdone/actions/workflows/codeql-analysis.yml)
+[![Coverage](./badges/coverage.svg)](./badges/coverage.svg)
 
 Создано в рамках статьи для блога: [Домашний Сервер: Часть 4 – Настройка Transmission daemon в контейнере LXC Proxmox-VE](https://gregory-gost.ru/domashnij-server-chast-4-nastrojka-transmission-daemon-v-kontejnere-lxc-proxmox-ve/)
 
@@ -85,49 +89,46 @@
 ### **Установка**
 
 Нужно поставить NodeJS и менеджер пакетов PNPM  
-Команды для Proxmox LXC Debian 11.5 под root
+Команды для Proxmox LXC Debian под root
 
 ```shell
 apt update
 apt upgrade -y
-apt install -y curl gcc g++ make git
+apt install -y curl git
 ```
 
 Ставим NodeJS  
 Пойти в <https://github.com/nodesource/distributions/blob/master/README.md>  
-Выбрать LTS версию не ниже 16 (не тестировалось на 18, но работать должно)
+Выбрать LTS версию не ниже 20
 
 ```shell
-curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt update
 apt install -y nodejs
 node -v
-v16.17.0
+v20.11.0
 ```
 
-Устанавливаем глобально менеджер пакетов PNPM
-
-```shell
-curl -fsSL https://get.pnpm.io/install.sh | sh -
-export PNPM_HOME="/root/.local/share/pnpm"
-export PATH="$PNPM_HOME:$PATH"
-pnpm -v
-7.15.0
-```
-
-Далее создаем проект и настраиваем его
-
-Если Вы не хотите ставить PNPM, то можете удалить файл `pnpm-lock.yaml` и использовать стандартную команду `npm ci --only=production` вместо `pnpm i -P`
+Далее создаем папку под приложение и настраиваем его
 
 ```shell
 mkdir /opt/torrentdone
 cd /opt/torrentdone
 git clone https://github.com/GregoryGost/Transmission-torrentdone.git .
-pnpm i -P
 cd ..
 chown -R debian-transmission:debian-transmission torrentdone/
-chmod +x torrentdone/dist/main.js
+chmod +x torrentdone/dist/index.js torrentdone/update.sh
 ```
+
+### Обновление
+
+Для обновления необходимо запустить файл update.sh
+
+```shell
+./update.sh
+```
+
+### Конфигурирование
 
 Создаем файл настроек и задаем свои параметры
 
@@ -142,8 +143,6 @@ nano /opt/torrentdone/config.json
 }
 ```
 
-Возможные параметры для конфигурирования
-
 Обязательные:
 
 - `login` - Логин авторизации для transmission-remote. Прописан в файле `settings.json` самого Transmission. Как правило располагается по пути `/etc/transmission-daemon/`
@@ -157,7 +156,7 @@ nano /opt/torrentdone/config.json
 - `media_path` - Путь хранения медиа файлов. Default `/mnt/data/media`
 - `serials_root_dir` - Название базовой директории для сохранения файлов сериалов. Default: `TV Shows`
 - `films_root_dir` - Название базовой директории для сохранения файлов фильмов. Default: `Movies`
-- `date_format` - Формат вывода даты в логе и в приложении. Для форматирования используется модуль [fecha](https://github.com/taylorhakes/fecha) Default: `DD.MM.YYYY HH:mm:ss` Example: 12.11.2022 21:54:03
+- `date_format` - Формат вывода даты в логе и в приложении. Для форматирования в log4js используется модуль [date-format](https://www.npmjs.com/package/date-format) Default: `dd.MM.yyyy_hh:mm:ss.SSS` Example: 12.11.2022_21:54:03.789
 - `ip_address` - IP адрес для доступа к transmission. Default: `127.0.0.1`
 - `tcp_port` - TCP порт для доступа к transmission. Default: `9091`
 - `allowed_media_extensions` - Расширения файлов перечисленные через запятую для которых осуществляется обработка. Default: `mkv,mp4,avi`
