@@ -18695,61 +18695,130 @@ const node_path_1 = __nccwpck_require__(9411);
 const node_fs_1 = __nccwpck_require__(7561);
 const nconf_1 = __importDefault(__nccwpck_require__(1799));
 class Config {
-    rootPath;
+    _rootPath;
     nconf = nconf_1.default;
-    devmode;
-    appVersion;
-    logLevel;
-    dateFormat;
-    logFilePath;
-    ipAddress;
-    port;
-    login;
-    password;
-    mediaPath;
-    serialsRootDir;
-    filmsRootDir;
-    allowedMediaExtensions;
-    trAppVersion;
-    trTorrentId;
-    trTorrentName;
-    trTorrentDir;
-    trTorrentHash;
-    trTimeLocaltime;
-    trTorrentLabels;
-    trTorrentBytesDownloaded;
-    trTorrentTrackers;
+    _devmode;
+    _appVersion;
+    _logLevel;
+    _dateFormat;
+    _logFilePath;
+    _ipAddress;
+    _port;
+    _login;
+    _password;
+    _mediaPath;
+    _serialsRootDir;
+    _filmsRootDir;
+    _allowedMediaExtensions;
+    _trAppVersion;
+    _trTorrentId;
+    _trTorrentName;
+    _trTorrentDir;
+    _trTorrentHash;
+    _trTimeLocaltime;
+    _trTorrentLabels;
+    _trTorrentBytesDownloaded;
+    _trTorrentTrackers;
     constructor(root_path) {
-        this.rootPath = root_path ?? Config.getRootDir();
+        this._rootPath = root_path ?? Config.getRootDir();
         this.init();
-        this.login = this.getParam('login');
-        this.password = this.getParam('password');
-        this.devmode = this.getParam('node_env') === 'development';
-        this.appVersion = this.getParam('version');
-        this.logLevel = this.devmode ? 'trace' : this.getParam('log_level');
-        this.dateFormat = this.getParam('date_format');
-        this.logFilePath = this.getParam('log_file_path');
-        this.ipAddress = this.getParam('ip_address');
-        this.port = Number(this.getParam('tcp_port'));
-        this.allowedMediaExtensions = Config.extensionsRegexTemplate(this.getParam('allowed_media_extensions'));
-        this.mediaPath = this.devmode ? (0, node_path_1.normalize)(`${this.rootPath}/mnt/data/media`) : this.getParam('media_path');
-        this.serialsRootDir = this.getParam('serials_root_dir');
-        this.filmsRootDir = this.getParam('films_root_dir');
-        this.trAppVersion = this.getParam('TR_APP_VERSION');
-        this.trTorrentId = Number(this.getParam('TR_TORRENT_ID'));
-        this.trTorrentName = this.getParam('TR_TORRENT_NAME');
-        this.trTorrentDir = this.getParam('TR_TORRENT_DIR');
-        this.trTorrentHash = this.getParam('TR_TORRENT_HASH');
-        this.trTimeLocaltime = this.getParam('TR_TIME_LOCALTIME');
-        this.trTorrentLabels = this.getParam('TR_TORRENT_LABELS');
-        this.trTorrentBytesDownloaded = Number(this.getParam('TR_TORRENT_BYTES_DOWNLOADED'));
-        this.trTorrentTrackers = this.getParam('TR_TORRENT_TRACKERS');
+        this._login = this.getParam('login');
+        this._password = this.getParam('password');
+        this._devmode = this.getParam('node_env') === 'development';
+        this._appVersion = this.getParam('version');
+        this._logLevel = this._devmode ? 'trace' : this.getParam('log_level');
+        this._dateFormat = this.getParam('date_format');
+        this._logFilePath = this.getParam('log_file_path');
+        this._ipAddress = this.getParam('ip_address');
+        this._port = Number(this.getParam('tcp_port'));
+        this._allowedMediaExtensions = Config.extensionsRegexTemplate(this.getParam('allowed_media_extensions'));
+        this._mediaPath = this._devmode ? (0, node_path_1.normalize)(`${this._rootPath}/mnt/data/media`) : this.getParam('media_path');
+        this._serialsRootDir = this.getParam('serials_root_dir');
+        this._filmsRootDir = this.getParam('films_root_dir');
+        this._trAppVersion = this.getParam('TR_APP_VERSION');
+        this._trTorrentId = Number(this.getParam('TR_TORRENT_ID'));
+        this._trTorrentName = this.getParam('TR_TORRENT_NAME');
+        this._trTorrentDir = this.getParam('TR_TORRENT_DIR');
+        this._trTorrentHash = this.getParam('TR_TORRENT_HASH');
+        this._trTimeLocaltime = this.getParam('TR_TIME_LOCALTIME');
+        this._trTorrentLabels = this.getParam('TR_TORRENT_LABELS');
+        this._trTorrentBytesDownloaded = Number(this.getParam('TR_TORRENT_BYTES_DOWNLOADED'));
+        this._trTorrentTrackers = this.getParam('TR_TORRENT_TRACKERS');
+    }
+    get rootPath() {
+        return this._rootPath;
+    }
+    get devmode() {
+        return this._devmode;
+    }
+    get appVersion() {
+        return this._appVersion;
+    }
+    get logLevel() {
+        return this._logLevel;
+    }
+    get dateFormat() {
+        return this._dateFormat;
+    }
+    get logFilePath() {
+        return this._logFilePath;
+    }
+    get ipAddress() {
+        return this._ipAddress;
+    }
+    get port() {
+        return this._port;
+    }
+    get login() {
+        return this._login;
+    }
+    get password() {
+        return this._password;
+    }
+    get mediaPath() {
+        return this._mediaPath;
+    }
+    get serialsRootDir() {
+        return this._serialsRootDir;
+    }
+    get filmsRootDir() {
+        return this._filmsRootDir;
+    }
+    get allowedMediaExtensions() {
+        return this._allowedMediaExtensions;
+    }
+    get trAppVersion() {
+        return this._trAppVersion;
+    }
+    get trTorrentId() {
+        return this._trTorrentId;
+    }
+    get trTorrentName() {
+        return this._trTorrentName;
+    }
+    get trTorrentDir() {
+        return this._trTorrentDir;
+    }
+    get trTorrentHash() {
+        return this._trTorrentHash;
+    }
+    get trTimeLocaltime() {
+        return this._trTimeLocaltime;
+    }
+    get trTorrentLabels() {
+        return this._trTorrentLabels;
+    }
+    get trTorrentBytesDownloaded() {
+        return this._trTorrentBytesDownloaded;
+    }
+    get trTorrentTrackers() {
+        return this._trTorrentTrackers;
     }
     init() {
-        const configFile = (0, node_path_1.normalize)(`${this.rootPath}/config.json`);
+        const configFile = (0, node_path_1.normalize)(`${this._rootPath}/config.json`);
         this.nconf.env();
         this.nconf.file('config', configFile);
-        this.nconf.file('package', (0, node_path_1.normalize)(`${this.rootPath}/package.json`));
+        this.nconf.file('package', (0, node_path_1.normalize)(`${this._rootPath}/package.json`));
         this.nconf.defaults({
             node_env: 'production',
             media_path: '/mnt/data/media',
