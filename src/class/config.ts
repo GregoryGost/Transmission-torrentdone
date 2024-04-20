@@ -1,5 +1,6 @@
-import { normalize, dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { dirname, normalize, join } from 'node:path';
+import { existsSync } from 'node:fs';
 import nconf from 'nconf';
 
 /**
@@ -10,35 +11,35 @@ class Config {
   /**
    * Path to root application dir
    */
-  public readonly rootPath: string = normalize(join(dirname(fileURLToPath(import.meta.url)), '../..'));
+  private readonly _rootPath: string;
   /**
    * Nconf implements
    */
-  public readonly nconf: typeof nconf = nconf;
+  private readonly nconf: typeof nconf = nconf;
   /**
    * Development mode status
    * if development = true
    * Default: development
    */
-  public readonly devmode: boolean;
+  private readonly _devmode: boolean;
   /**
    * This Application version
    * Read from base file package.json
    */
-  public readonly appVersion: string;
+  private readonly _appVersion: string;
   /**
    * Log level.
    * if devmode(true) = `trace`.
    * Variants: (`trace` | `debug` | `info` | `warn` | `error`).
    * Default: `info`
    */
-  public readonly logLevel: string;
+  private readonly _logLevel: string;
   /**
    * Date and time format. Used in winston and application.
    * Formatted string accepted by the [fecha](https://github.com/taylorhakes/fecha) module.
    * Default: `DD.MM.YYYY HH:mm:ss`
    */
-  public readonly dateFormat: string;
+  private readonly _dateFormat: string;
   //
   // TRANSMISSION SETTINGS
   //
@@ -46,121 +47,214 @@ class Config {
    * Torrent done log file path.
    * Default: `/var/log/transmission/torrentdone.log`
    */
-  public readonly logFilePath: string;
+  private readonly _logFilePath: string;
   /**
    * Transmission-daemon IP Address.
    * Default: `127.0.0.1` (localhost)
    */
-  public readonly ipAddress: string;
+  private readonly _ipAddress: string;
   /**
    * Transmission-daemon TCP Port.
    * Default: `9091`
    */
-  public readonly port: number;
+  private readonly _port: number;
   /**
    * Transmission-daemon access login
    */
-  public readonly login: string | undefined;
+  private readonly _login: string | undefined;
   /**
    * Transmission-daemon access password
    */
-  public readonly password: string | undefined;
+  private readonly _password: string | undefined;
   /**
    * Path to move and copy movie and series files
    */
-  public readonly mediaPath: string;
+  private readonly _mediaPath: string;
   /**
    * The name of the directory where TV shows will be saved
    */
-  public readonly serialsRootDir: string;
+  private readonly _serialsRootDir: string;
   /**
    * The name of the directory where the movies will be saved
    */
-  public readonly filmsRootDir: string;
+  private readonly _filmsRootDir: string;
   /**
    * Allowed extensions for media files.
    * Default: `mkv,mp4,avi`
    */
-  public readonly allowedMediaExtensions: RegExp;
+  private readonly _allowedMediaExtensions: RegExp;
   /**
    * Transmission-daemon version.
    * Example: `3.00`
    */
-  public readonly trAppVersion: string;
+  private readonly _trAppVersion: string;
   /**
    * Torrent identificator (simple number).
    * Example: `999`
    */
-  public readonly trTorrentId: number;
+  private readonly _trTorrentId: number;
   /**
    * Torrent name (like at view in Transmission Remote GUI interface)
    */
-  public readonly trTorrentName: string;
+  private readonly _trTorrentName: string;
   /**
    * Now torrent directory.
    * Example: `/mnt/data/downloads`
    */
-  public readonly trTorrentDir: string;
+  private readonly _trTorrentDir: string;
   /**
    * Now torrent hash.
    * Example: `149f78bfd91fa7e91856b456d6fee59202bfcec0`
    */
-  public readonly trTorrentHash: string;
+  private readonly _trTorrentHash: string;
   /**
    * Date and time torrentdone script start.
    * Example: `Fri Nov  4 20:23:27 2022`
    */
-  public readonly trTimeLocaltime: string;
+  private readonly _trTimeLocaltime: string;
   /**
    * A comma-delimited list of the torrent's labels.
    * Example: `foo,bar,baz` ???
    */
-  public readonly trTorrentLabels: string;
+  private readonly _trTorrentLabels: string;
   /**
    * ONLY FOR TRANSMISSION >= 4.0.0.
    * Number of bytes that were downloaded for this torrent.
    * Example: `123456789` ???
    */
-  public readonly trTorrentBytesDownloaded: number;
+  private readonly _trTorrentBytesDownloaded: number;
   /**
    * A comma-delimited list of the torrent's trackers' announce URLs.
    * Example: `https://foo.com,https://bar.org,https://baz.com` ???
    */
-  public readonly trTorrentTrackers: string;
+  private readonly _trTorrentTrackers: string;
 
-  constructor(config_file_path?: string) {
-    this.init(config_file_path);
-    this.login = this.getParam('login');
-    this.password = this.getParam('password');
-    this.devmode = this.getParam('node_env') === 'development';
-    this.appVersion = this.getParam('version');
-    this.logLevel = this.devmode ? 'trace' : this.getParam('log_level');
-    this.dateFormat = this.getParam('date_format');
-    this.logFilePath = this.getParam('log_file_path');
-    this.ipAddress = this.getParam('ip_address');
-    this.port = Number(this.getParam('tcp_port'));
-    this.allowedMediaExtensions = Config.extensionsRegexTemplate(this.getParam('allowed_media_extensions'));
-    this.mediaPath = this.devmode ? normalize(`${this.rootPath}/tests/mnt/data/media`) : this.getParam('media_path');
-    this.serialsRootDir = this.getParam('serials_root_dir');
-    this.filmsRootDir = this.getParam('films_root_dir');
+  constructor(root_path?: string) {
+    this._rootPath = root_path ?? Config.getRootDir();
+    this.init();
+    this._login = this.getParam('login');
+    this._password = this.getParam('password');
+    this._devmode = this.getParam('node_env') === 'development';
+    this._appVersion = this.getParam('version');
+    this._logLevel = this._devmode ? 'trace' : this.getParam('log_level');
+    this._dateFormat = this.getParam('date_format');
+    this._logFilePath = this.getParam('log_file_path');
+    // Application parameters
+    this._ipAddress = this.getParam('ip_address');
+    this._port = Number(this.getParam('tcp_port'));
+    this._allowedMediaExtensions = Config.extensionsRegexTemplate(this.getParam('allowed_media_extensions'));
+    this._mediaPath = this._devmode ? normalize(`${this._rootPath}/mnt/data/media`) : this.getParam('media_path');
+    this._serialsRootDir = this.getParam('serials_root_dir');
+    this._filmsRootDir = this.getParam('films_root_dir');
     // Transmission Environment
-    this.trAppVersion = this.getParam('TR_APP_VERSION');
-    this.trTorrentId = Number(this.getParam('TR_TORRENT_ID'));
-    this.trTorrentName = this.getParam('TR_TORRENT_NAME');
-    this.trTorrentDir = this.getParam('TR_TORRENT_DIR');
-    this.trTorrentHash = this.getParam('TR_TORRENT_HASH');
-    this.trTimeLocaltime = this.getParam('TR_TIME_LOCALTIME');
-    this.trTorrentLabels = this.getParam('TR_TORRENT_LABELS');
-    this.trTorrentBytesDownloaded = Number(this.getParam('TR_TORRENT_BYTES_DOWNLOADED'));
-    this.trTorrentTrackers = this.getParam('TR_TORRENT_TRACKERS');
+    this._trAppVersion = this.getParam('TR_APP_VERSION');
+    this._trTorrentId = Number(this.getParam('TR_TORRENT_ID'));
+    this._trTorrentName = this.getParam('TR_TORRENT_NAME');
+    this._trTorrentDir = this.getParam('TR_TORRENT_DIR');
+    this._trTorrentHash = this.getParam('TR_TORRENT_HASH');
+    this._trTimeLocaltime = this.getParam('TR_TIME_LOCALTIME');
+    this._trTorrentLabels = this.getParam('TR_TORRENT_LABELS');
+    this._trTorrentBytesDownloaded = Number(this.getParam('TR_TORRENT_BYTES_DOWNLOADED'));
+    this._trTorrentTrackers = this.getParam('TR_TORRENT_TRACKERS');
   }
 
-  private init(config_file_path?: string): void {
-    let configFile: string = normalize(`${this.rootPath}/config.json`);
-    if (config_file_path !== undefined) configFile = normalize(config_file_path);
+  get rootPath(): string {
+    return this._rootPath;
+  }
+
+  get devmode(): boolean {
+    return this._devmode;
+  }
+
+  get appVersion(): string {
+    return this._appVersion;
+  }
+
+  get logLevel(): string {
+    return this._logLevel;
+  }
+
+  get dateFormat(): string {
+    return this._dateFormat;
+  }
+
+  get logFilePath(): string {
+    return this._logFilePath;
+  }
+
+  get ipAddress(): string {
+    return this._ipAddress;
+  }
+
+  get port(): number {
+    return this._port;
+  }
+
+  get login(): string | undefined {
+    return this._login;
+  }
+
+  get password(): string | undefined {
+    return this._password;
+  }
+
+  get mediaPath(): string {
+    return this._mediaPath;
+  }
+
+  get serialsRootDir(): string {
+    return this._serialsRootDir;
+  }
+
+  get filmsRootDir(): string {
+    return this._filmsRootDir;
+  }
+
+  get allowedMediaExtensions(): RegExp {
+    return this._allowedMediaExtensions;
+  }
+
+  get trAppVersion(): string {
+    return this._trAppVersion;
+  }
+
+  get trTorrentId(): number {
+    return this._trTorrentId;
+  }
+
+  get trTorrentName(): string {
+    return this._trTorrentName;
+  }
+
+  get trTorrentDir(): string {
+    return this._trTorrentDir;
+  }
+
+  get trTorrentHash(): string {
+    return this._trTorrentHash;
+  }
+
+  get trTimeLocaltime(): string {
+    return this._trTimeLocaltime;
+  }
+
+  get trTorrentLabels(): string {
+    return this._trTorrentLabels;
+  }
+
+  get trTorrentBytesDownloaded(): number {
+    return this._trTorrentBytesDownloaded;
+  }
+
+  get trTorrentTrackers(): string {
+    return this._trTorrentTrackers;
+  }
+
+  private init(): void {
+    const configFile: string = normalize(`${this._rootPath}/config.json`);
     this.nconf.env();
     this.nconf.file('config', configFile);
-    this.nconf.file('package', normalize(`${this.rootPath}/package.json`));
+    this.nconf.file('package', normalize(`${this._rootPath}/package.json`));
     this.nconf.defaults({
       node_env: 'production',
       media_path: '/mnt/data/media',
@@ -168,7 +262,7 @@ class Config {
       films_root_dir: 'Movies',
       log_level: 'info',
       log_file_path: '/var/log/transmission/torrentdone.log',
-      date_format: 'DD.MM.YYYY HH:mm:ss',
+      date_format: 'dd.MM.yyyy_hh:mm:ss.SSS', // https://www.npmjs.com/package/date-format
       ip_address: '127.0.0.1',
       tcp_port: '9091',
       allowed_media_extensions: 'mkv,mp4,avi',
@@ -209,11 +303,11 @@ class Config {
    *
    * !!! The hashed password from the transmission settings file is not suitable for requests via transmission-remote
    */
-  private check(): void {
+  check(): void {
     const login: string = this.getParam('login');
     const password: string = this.getParam('password');
-    if (login === undefined || password === undefined) {
-      throw new Error('Login or password must be filled in config,json file or Environment');
+    if (login === undefined || login === '' || password === undefined || password === '') {
+      throw new Error('Login or password must be filled in config.json file or Environment');
     }
     const trAppVersion: string = this.getParam('TR_APP_VERSION');
     const trTorrentId = Number(this.getParam('TR_TORRENT_ID'));
@@ -223,7 +317,7 @@ class Config {
     const trTimeLocaltime: string = this.getParam('TR_TIME_LOCALTIME');
     if (
       trAppVersion === undefined ||
-      trTorrentId === NaN ||
+      Number.isNaN(trTorrentId) ||
       trTorrentDir === undefined ||
       trTorrentName === undefined ||
       trTorrentHash === undefined ||
@@ -235,6 +329,25 @@ class Config {
     }
   }
 
+  /**
+   * Determining the Project Root Path
+   * @returns {string} application root path
+   */
+  private static getRootDir(): string {
+    const filename: string = fileURLToPath(pathToFileURL(__filename).toString());
+    const dir = dirname(filename);
+    let currentDir: string = dir;
+    while (!existsSync(join(currentDir, 'package.json'))) {
+      currentDir = join(currentDir, '..');
+    }
+    return normalize(currentDir);
+  }
+
+  /**
+   * Get parameter value
+   * @param {string} param_name - config parameters name
+   * @returns {string} parameter value
+   */
   private getParam(param_name: string): string {
     // From config file. Example: login | log_level
     let param = this.nconf.get(param_name);
@@ -246,9 +359,9 @@ class Config {
 
   private static extensionsRegexTemplate(allowed_media_extensions: string): RegExp {
     const extensionArray: string[] = allowed_media_extensions.split(',');
-    let regexString = `\.(`;
+    let regexString = `.(`;
     if (extensionArray.length > 1) {
-      for (const i in extensionArray) {
+      for (let i = 0; i < extensionArray.length; i++) {
         if (Number(i) === 0) regexString += `${extensionArray[i]}|`;
         else if (Number(i) === extensionArray.length - 1) regexString += `|${extensionArray[i]}`;
         else regexString += extensionArray[i];

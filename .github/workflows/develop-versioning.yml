@@ -1,0 +1,27 @@
+name: Develop Self Versioning
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: write
+
+jobs:
+  develop-version:
+    name: Develop Self Versioning
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: New Develop version tag
+        id: new-dev-version
+        uses: GregoryGost/version-tagger@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          prefix: 'v'
+          postfix: 'dev'
