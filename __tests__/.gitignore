@@ -1,0 +1,6 @@
+configs/mnt/data/
+!configs/config.json
+!configs/no_login/config.json
+!configs/no_tr_env/config.json
+!configs/once_ext/config.json
+!configs/ak_prod/config.json
