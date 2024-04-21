@@ -98,9 +98,7 @@
 Команды для Proxmox LXC Debian под root
 
 ```shell
-apt update
-apt upgrade -y
-apt install -y curl git
+apt update && apt upgrade -y && apt install -y curl git apt-transport-https
 ```
 
 Ставим NodeJS  
@@ -120,13 +118,19 @@ v20.11.0
 ```shell
 mkdir /opt/torrentdone
 cd /opt/torrentdone
-git clone https://github.com/GregoryGost/Transmission-torrentdone.git .
-cd ..
-chown -R debian-transmission:debian-transmission torrentdone/
-chmod +x torrentdone/dist/index.js torrentdone/update.sh
+git clone --depth 1 --branch main https://github.com/GregoryGost/transmission-torrentdone.git .
+chown -R debian-transmission:debian-transmission /opt/torrentdone
+chmod +x /opt/torrentdone/dist/index.js /opt/torrentdone/update.sh
 ```
 
 ### Обновление
+
+Стоит обновить NodeJS. Как пример обновление на 20 LTS версию.
+
+```shell
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt update && apt upgrade -y
+```
 
 Для обновления из `master` ветки необходимо запустить файл `update.sh` без указания каких-либо параметров
 
