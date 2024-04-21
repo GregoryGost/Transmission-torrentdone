@@ -19,6 +19,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: New tag step
+        working-directory: ./
         id: new-dev-version
         uses: GregoryGost/version-tagger@v1.0.2
         with:
