@@ -1,0 +1,41 @@
+/// <reference types="node" />
+
+import { type Configuration } from 'log4js';
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Logger
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export type ServerLoggerConfiguration = Configuration;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Torrentdone
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Base serial prepared data
+ * Example name: **Tom.Clancys.Jack.Ryan**
+ * Example directory name: **Tom Clancys Jack Ryan**
+ * Example season: **Season 01**
+ */
+export interface SerialDataI {
+  name: string;
+  dirName: string;
+  season: string;
+}
+
+/**
+ * Base film prepared data
+ * Example name: **Avatar**
+ * Example year: **2022**
+ */
+export interface FilmDataI {
+  name: string;
+  year: string;
+  three_d: boolean;
+}
+
+/**
+ * File or Directory types
+ */
+export type IsFileOrDirectoryT = 'FILE' | 'DIR' | undefined;

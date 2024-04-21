@@ -1,19 +1,29 @@
 {
-  "preset": "ts-jest/presets/default-esm",
-  "maxWorkers": 1,
-  "roots": ["./"],
+  "preset": "ts-jest",
+  "verbose": true,
+  "clearMocks": true,
   "testEnvironment": "node",
+  "moduleFileExtensions": [
+    "js",
+    "ts"
+  ],
+  "testMatch": [
+    "**/*.test.ts"
+  ],
+  "testPathIgnorePatterns": [
+    "/node_modules/",
+    "/dist/"
+  ],
   "transform": {
-    "^.+\\.ts?$": "ts-jest"
+    "^.+\\.ts$": "ts-jest"
   },
-  "transformIgnorePatterns": ["./node_modules/", "./dist/"],
-  "coverageThreshold": {
-    "global": {
-      "branches": 90,
-      "functions": 90,
-      "lines": 95,
-      "statements": 90
-    }
-  },
-  "coverageReporters": ["json", "lcov", "text", "clover"]
+  "coverageReporters": [
+    "json-summary",
+    "text",
+    "lcov"
+  ],
+  "collectCoverage": true,
+  "collectCoverageFrom": [
+    "./src/**"
+  ]
 }

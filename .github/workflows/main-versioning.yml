@@ -1,0 +1,29 @@
+name: Main versioning
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+permissions:
+  contents: write
+
+jobs:
+  main-version:
+    if: github.event.pull_request.merged == true
+    name: Main versioning job
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout step
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: New tag step
+        id: new-main-version
+        uses: GregoryGost/version-tagger@v1.0.3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          prefix: 'v'

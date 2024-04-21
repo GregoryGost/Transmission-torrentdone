@@ -1,0 +1,27 @@
+name: Develop versioning
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: write
+
+jobs:
+  develop-version:
+    name: Develop versioning job
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout step
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: New tag step
+        id: new-dev-version
+        uses: GregoryGost/version-tagger@v1.0.3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          prefix: 'v'
+          postfix: 'dev'

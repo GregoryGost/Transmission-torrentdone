@@ -1,0 +1,14 @@
+{
+  "login": "test",
+  "password": "password",
+  "node_env": "development",
+  "log_file_path": "./logs/torrentdone.log",
+  "media_path": "./tests/mnt/data",
+  "TR_APP_VERSION": "33.00",
+  "TR_TIME_LOCALTIME": "Sun Nov  6 04:31:04 2022",
+  "TR_TORRENT_DIR": "/mnt/data/download",
+  "TR_TORRENT_HASH": "9ef9e27600d656140ba016aa81460fe2e518cbda",
+  "TR_TORRENT_ID": "200",
+  "TR_TORRENT_NAME": "Some file name",
+  "TR_TORRENT_LABELS": ""
+}

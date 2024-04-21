@@ -1,0 +1,50 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+
+jobs:
+  test-typescript:
+    name: TypeScript Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        id: setup-pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ^9
+
+      - name: Setup Node.js
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install Dependencies
+        id: pnpm-install
+        run: pnpm i --frozen-lockfile
+
+      - name: Check Format
+        id: pnpm-format-check
+        run: pnpm run format:check
+
+      - name: Lint
+        id: pnpm-lint
+        run: pnpm run lint
+
+      - name: Tests
+        id: pnpm-ci-test
+        run: pnpm run ci-test

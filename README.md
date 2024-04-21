@@ -1,21 +1,27 @@
-# **Transmission script-torrent-done application**
+# Transmission daemon torrent done application script
 
 ![License](https://img.shields.io/github/license/GregoryGost/transmission-torrentdone)
 ![RepoSize](https://img.shields.io/github/repo-size/GregoryGost/transmission-torrentdone)
 ![CodeSize](https://img.shields.io/github/languages/code-size/GregoryGost/transmission-torrentdone)
 ![IssuesOpen](https://img.shields.io/github/issues-raw/GregoryGost/transmission-torrentdone)
 ![LatestRelease](https://img.shields.io/github/v/release/GregoryGost/transmission-torrentdone)
+![CI](https://github.com/GregoryGost/transmission-torrentdone/actions/workflows/ci.yml/badge.svg)
+[![Check dist/](https://github.com/GregoryGost/transmission-torrentdone/actions/workflows/check-dist.yml/badge.svg)](https://github.com/GregoryGost/transmission-torrentdone/actions/workflows/check-dist.yml)
+[![CodeQL](https://github.com/GregoryGost/transmission-torrentdone/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/GregoryGost/transmission-torrentdone/actions/workflows/codeql-analysis.yml)
+[![Coverage](./badges/coverage.svg)](./badges/coverage.svg)
 
 Создано в рамках статьи для блога: [Домашний Сервер: Часть 4 – Настройка Transmission daemon в контейнере LXC Proxmox-VE](https://gregory-gost.ru/domashnij-server-chast-4-nastrojka-transmission-daemon-v-kontejnere-lxc-proxmox-ve/)
 
 [Пример `Debug` лога обработки одного файла](./EXAMPLE.md)
 
-## **Оглавление**
+## Оглавление
 
 <!--ts-->
 
 - [Приложение transmission-torrentdone](#приложение-transmission-torrentdone)
   - [Установка](#установка)
+  - [Обновление](#обновление)
+  - [Конфигурирование](#конфигурирование)
   - [Алгоритм обработки торрентов](#алгоритм-обработки-торрентов)
   - [Правила именования торрентов для корректной работы скрипта](#правила-именования-торрентов-для-корректной-работы-скрипта)
     - [Сериалы](#сериалы)
@@ -26,7 +32,7 @@
 
 <!--te-->
 
-## **Приложение** `transmission-torrentdone`
+## Приложение `transmission-torrentdone`
 
 Основной кодовой базой является программная платформа [NodeJS](https://nodejs.org/) основанная на движке [V8](https://v8.dev/)
 
@@ -35,12 +41,17 @@
 
 ```json
 "script-torrent-done-enabled": true,
-"script-torrent-done-filename": "/opt/torrentdone/dist/main.js",
+"script-torrent-done-filename": "/opt/torrentdone/dist/index.js",
 "umask": 0,
 ```
 
 История версий:
 
+- v3.0.0 - (21.04.2024) - Изменена архитектура итогового приложения. Теперь нет необходимости ставить зависимости. Все собрано в единый `index.js` файл. Достаточно только базового NodeJS. Дополнительно осуществлен переход на новую библиотеку логирования, покрытие юнит тестами и прочее.
+
+&nbsp;
+
+- v2.0.2 - (19.08.2023) - Обновлено совпадение для файлов сериалов. Ранее учитывался только вариант с малыми буквами сезона и эпизода. Теперь учитываются и большие буквы. Также не учитывался разделитель сезона и эпизода. Ранее: `s01e01`. Теперь возможны варианты: `S01E01`, `S01e01`, `S01.E01`, `S01-E01`, `S01_E01`
 - v2.0.1 - (20.12.2022) Параметры перенесены из окружения в конфигурационный файл для удобства. Используется пакет `nconf`. Поправлены команды для `transmission-remote`
 - v2.0.0 - (12.01.2022) Полностью заменен файл **torrentdone.sh** на **NodeJS** проект. Изменена и расширена логика обработки, улучшено логирование (уровни info, debug, etc) и многое другое. Для разработчиков доступно тестирование через Jest.
 
@@ -81,52 +92,55 @@
 - TR_TORRENT_BYTES_DOWNLOADED: размер загруженных данных в байтах
 - TR_TORRENT_TRACKERS: список URL анонсированных трекеров
 
-### **Установка**
+### Установка
 
 Нужно поставить NodeJS и менеджер пакетов PNPM  
-Команды для Proxmox LXC Debian 11.5 под root
+Команды для Proxmox LXC Debian под root
 
 ```shell
 apt update
 apt upgrade -y
-apt install -y curl gcc g++ make git
+apt install -y curl git
 ```
 
 Ставим NodeJS  
 Пойти в <https://github.com/nodesource/distributions/blob/master/README.md>  
-Выбрать LTS версию не ниже 16 (не тестировалось на 18, но работать должно)
+Выбрать LTS версию не ниже 20
 
 ```shell
-curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt update
 apt install -y nodejs
 node -v
-v16.17.0
+v20.11.0
 ```
 
-Устанавливаем глобально менеджер пакетов PNPM
-
-```shell
-curl -fsSL https://get.pnpm.io/install.sh | sh -
-export PNPM_HOME="/root/.local/share/pnpm"
-export PATH="$PNPM_HOME:$PATH"
-pnpm -v
-7.15.0
-```
-
-Далее создаем проект и настраиваем его
-
-Если Вы не хотите ставить PNPM, то можете удалить файл `pnpm-lock.yaml` и использовать стандартную команду `npm ci --only=production` вместо `pnpm i -P`
+Далее создаем папку под приложение и настраиваем его
 
 ```shell
 mkdir /opt/torrentdone
 cd /opt/torrentdone
 git clone https://github.com/GregoryGost/Transmission-torrentdone.git .
-pnpm i -P
 cd ..
 chown -R debian-transmission:debian-transmission torrentdone/
-chmod +x torrentdone/dist/main.js
+chmod +x torrentdone/dist/index.js torrentdone/update.sh
 ```
+
+### Обновление
+
+Для обновления из `master` ветки необходимо запустить файл `update.sh` без указания каких-либо параметров
+
+```shell
+./update.sh
+```
+
+Если вы хотите обновить из другой ветки, просто передайте её название скрипту обновления
+
+```shell
+./update.sh develop
+```
+
+### Конфигурирование
 
 Создаем файл настроек и задаем свои параметры
 
@@ -141,8 +155,6 @@ nano /opt/torrentdone/config.json
 }
 ```
 
-Возможные параметры для конфигурирования
-
 Обязательные:
 
 - `login` - Логин авторизации для transmission-remote. Прописан в файле `settings.json` самого Transmission. Как правило располагается по пути `/etc/transmission-daemon/`
@@ -156,23 +168,23 @@ nano /opt/torrentdone/config.json
 - `media_path` - Путь хранения медиа файлов. Default `/mnt/data/media`
 - `serials_root_dir` - Название базовой директории для сохранения файлов сериалов. Default: `TV Shows`
 - `films_root_dir` - Название базовой директории для сохранения файлов фильмов. Default: `Movies`
-- `date_format` - Формат вывода даты в логе и в приложении. Для форматирования используется модуль [fecha](https://github.com/taylorhakes/fecha) Default: `DD.MM.YYYY HH:mm:ss` Example: 12.11.2022 21:54:03
+- `date_format` - Формат вывода даты в логе и в приложении. Для форматирования в log4js используется модуль [date-format](https://www.npmjs.com/package/date-format) Default: `dd.MM.yyyy_hh:mm:ss.SSS` Example: 12.11.2022_21:54:03.789
 - `ip_address` - IP адрес для доступа к transmission. Default: `127.0.0.1`
 - `tcp_port` - TCP порт для доступа к transmission. Default: `9091`
 - `allowed_media_extensions` - Расширения файлов перечисленные через запятую для которых осуществляется обработка. Default: `mkv,mp4,avi`
 
 Настройки будут считываться при каждом запуске скрипта по окончании процесса скачивания торрента.
 
-### **Алгоритм обработки торрентов**
+### Алгоритм обработки торрентов
 
 ![Transmission_torrentdone_algorithm.png](./aux_data/Transmission_torrentdone_algorithm.png)
 
-### **Правила именования торрентов для корректной работы скрипта**
+### Правила именования торрентов для корректной работы скрипта
 
 Нельзя просто так добавлять торренты в **Transmission remote GUI** или кидать торрент файлы в папку отслеживания с данным скриптом.  
 Если вы хотите, чтобы парсинг файлов и папок выполнялся корректно, необходимо соблюдать простые правила именования торрентов.
 
-#### **Сериалы**
+#### Сериалы
 
 Сериалы обрабатываются с помощью регулярных выражений
 
@@ -180,7 +192,7 @@ nano /opt/torrentdone/config.json
 
 Если Вы наблюдаете проблемы с определением, то можете создать запрос в ISSUE
 
-##### **Примеры названия сериалов**
+##### Примеры названия сериалов
 
 - индивидуальные файлы **LostFilm.TV**:
 
@@ -206,7 +218,7 @@ Peaky Blinders 6 - LostFilm.TV [1080p]
 californication.s06e08.hdtv.rus.eng.novafilm.tv.avi
 ```
 
-#### **Фильмы**
+#### Фильмы
 
 Фильмы также обрабатываются с помощью регулярных выражений  
 Но важно понимать, что учесть все возможные варианты наименований с торрент трекеров достаточно сложно. Именно поэтому нужно при добавлении одиночного фильма, корректно его назвать.
@@ -239,7 +251,7 @@ Bullet.Train.1080p.rus.LostFilm.TV.avi
 
 Если фильмы скачиваются трилогиями, дилогиями и т.д., то необходимо проверять внутренние файлы на наличие в них года. Иначе файл не будет скопирован так как не определится год.
 
-## **Ротация логов**
+## Ротация логов
 
 Скрипт по умолчанию пишет результат своей работы в LOG файл **torrentdone.log**  
 Log файл расположен по пути, где обычно хранятся все лог файлы самого transmisson-daemon:
@@ -265,7 +277,14 @@ systemctl restart logrotate.service
 systemctl status logrotate.service
 ```
 
-## **Лицензирование**
+## Лицензирование
 
 Все исходные материалы для проекта распространяются по лицензии [GPL v3](./LICENSE 'Описание лицензии').  
 Вы можете использовать проект в любом виде, в том числе и для коммерческой деятельности, но стоит помнить, что автор проекта не дает никаких гарантий на работоспособность исполняемых файлов, а так же не несет никакой ответственности по искам или за нанесенный ущерб.
+
+Этот репозиторий содержит ссылки на все используемые модули и их лицензии. Они собраны в
+[специальный файл лицензий](./dist/licenses.txt). Их авторы самостоятельно несут (или не несут) ответственность за качество, стабильность и работу этих модулей.
+
+## Немного о себе
+
+GregoryGost - <https://gregory-gost.ru>
