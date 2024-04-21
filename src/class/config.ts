@@ -357,6 +357,11 @@ class Config {
     return param;
   }
 
+  /**
+   * Format allowed media extensions list string to regexp
+   * @param {string} allowed_media_extensions - allowed media extensions list
+   * @returns {RegExp} formated list
+   */
   private static extensionsRegexTemplate(allowed_media_extensions: string): RegExp {
     const extensionArray: string[] = allowed_media_extensions.split(',');
     let regexString = `.(`;
