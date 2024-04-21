@@ -10,15 +10,15 @@ permissions:
 
 jobs:
   develop-version:
-    name: Develop Self Versioning
+    name: Develop versioning job
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout step
         id: checkout
         uses: actions/checkout@v4
 
-      - name: New Develop version tag
+      - name: New tag step
         id: new-dev-version
         uses: GregoryGost/version-tagger@v1.0.0
         with:
