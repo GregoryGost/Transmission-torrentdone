@@ -25,3 +25,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           prefix: 'v'
           postfix: 'dev'
+          dryrun: true
