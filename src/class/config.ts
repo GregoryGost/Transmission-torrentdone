@@ -36,8 +36,8 @@ class Config {
   private readonly _logLevel: string;
   /**
    * Date and time format. Used in winston and application.
-   * Formatted string accepted by the [fecha](https://github.com/taylorhakes/fecha) module.
-   * Default: `DD.MM.YYYY HH:mm:ss`
+   * Formatted string accepted by the [date-format](https://www.npmjs.com/package/date-format).
+   * Default: `dd.MM.yyyy_hh:mm:ss.SSS`
    */
   private readonly _dateFormat: string;
   //
