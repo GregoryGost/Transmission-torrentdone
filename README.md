@@ -182,13 +182,13 @@ apt update && apt upgrade -y
 Для обновления из `master` ветки необходимо запустить файл `update.sh` без указания каких-либо параметров
 
 ```shell
-./update.sh
+./scripts/update.sh
 ```
 
 Если вы хотите обновить из другой ветки, просто передайте её название скрипту обновления
 
 ```shell
-./update.sh develop
+./scripts/update.sh develop
 ```
 
 ## Алгоритм обработки торрентов
