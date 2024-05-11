@@ -30,7 +30,6 @@
     "all": "pnpm run format:write && pnpm run lint && pnpm run ci-test && pnpm run coverage && pnpm run package",
     "outdated-lib": "pnpm outdated"
   },
-  "packageManager": "pnpm@9.1.0",
   "engines": {
     "node": ">=20"
   },
