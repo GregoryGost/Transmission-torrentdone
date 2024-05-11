@@ -265,7 +265,7 @@ class Config {
       date_format: 'dd.MM.yyyy_hh:mm:ss.SSS', // https://www.npmjs.com/package/date-format
       ip_address: '127.0.0.1',
       tcp_port: '9091',
-      allowed_media_extensions: 'mkv,mp4,avi',
+      allowed_media_extensions: 'mkv,mp4,avi'
     });
     this.nconf.load();
     this.check();

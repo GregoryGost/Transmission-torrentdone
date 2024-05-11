@@ -3,14 +3,14 @@ name: CodeQL
 on:
   push:
     branches:
-      - main
       - develop
   pull_request:
     branches:
-      - main
       - develop
   schedule:
     - cron: '31 7 * * 3'
+
+permissions: read-all
 
 jobs:
   analyze:

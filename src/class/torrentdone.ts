@@ -292,7 +292,7 @@ class Torrentdone {
     const data: SerialDataI = {
       name,
       dirName,
-      season,
+      season
     };
     this._logger.debug(
       `Extracted data (${this.RELEASER}): name="${data.name}" dirName="${data.dirName}" season="${data.season}"`
@@ -317,7 +317,7 @@ class Torrentdone {
     const data: FilmDataI = {
       name,
       year,
-      three_d: this.regexThreeD.test(name),
+      three_d: this.regexThreeD.test(name)
     };
     this._logger.debug(
       `Extracted data (${this.RELEASER}): name="${data.name}" year="${data.year}" three_d="${data.three_d}"`
@@ -345,7 +345,7 @@ class Torrentdone {
     const data: FilmDataI = {
       name,
       year,
-      three_d: false,
+      three_d: false
     };
     this._logger.debug(`Extracted data (${this.RELEASER}): name="${data.name}" year="${data.year}" only 2D`);
     return data;
