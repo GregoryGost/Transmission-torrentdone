@@ -142,7 +142,7 @@ nano /opt/torrentdone/config.json
 ```json
 {
   "login": "transmission_login",
-  "password": "1234567890"
+  "password": "<your_password>"
 }
 ```
 
