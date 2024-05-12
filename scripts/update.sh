@@ -6,7 +6,7 @@ if [[ -n "$BRANCH" ]]; then
 	BRANCH="master"
 fi
 
-if which git 2> /dev/null > /dev/null; then
+if which git 2>/dev/null >/dev/null; then
 	echo "Updating source..."
 	git pull origin "$BRANCH"
 else
