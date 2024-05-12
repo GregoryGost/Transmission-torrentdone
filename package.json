@@ -25,7 +25,7 @@
     "format:write": "pnpm prettier --write .",
     "format:check": "pnpm prettier --check .",
     "lint": "pnpm eslint . -c ./.github/linters/.eslintrc.yml",
-    "package": "pnpm ncc build src/index.ts --license licenses.txt",
+    "package": "pnpm ncc build src/index.ts -o dist --license licenses.txt",
     "package:watch": "pnpm run package -- --watch",
     "all": "pnpm run format:write && pnpm run lint && pnpm run ci-test && pnpm run coverage && pnpm run package",
     "outdated-lib": "pnpm outdated"
