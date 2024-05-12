@@ -18829,7 +18829,7 @@ class Config {
             date_format: 'dd.MM.yyyy_hh:mm:ss.SSS',
             ip_address: '127.0.0.1',
             tcp_port: '9091',
-            allowed_media_extensions: 'mkv,mp4,avi',
+            allowed_media_extensions: 'mkv,mp4,avi'
         });
         this.nconf.load();
         this.check();
@@ -18950,8 +18950,8 @@ class ServerLogger {
                     type: 'console',
                     layout: {
                         type: 'pattern',
-                        pattern: `[%d{${this._config.dateFormat}}] : %[[%p]%] : %m`,
-                    },
+                        pattern: `[%d{${this._config.dateFormat}}] : %[[%p]%] : %m`
+                    }
                 },
                 logFile: {
                     type: 'file',
@@ -18960,17 +18960,17 @@ class ServerLogger {
                     compress: true,
                     layout: {
                         type: 'pattern',
-                        pattern: `[%d{${this._config.dateFormat}}] : [%p] : %m`,
-                    },
-                },
+                        pattern: `[%d{${this._config.dateFormat}}] : [%p] : %m`
+                    }
+                }
             },
             categories: {
                 default: {
                     appenders: this._config.devmode ? ['console'] : ['console', 'logFile'],
                     level: this._config.logLevel,
-                    enableCallStack: this._config.devmode ? true : false,
-                },
-            },
+                    enableCallStack: this._config.devmode ? true : false
+                }
+            }
         };
         this._log4js.configure(configServerLogger);
     }
@@ -19129,7 +19129,7 @@ class Torrentdone {
         const data = {
             name,
             dirName,
-            season,
+            season
         };
         this._logger.debug(`Extracted data (${this.RELEASER}): name="${data.name}" dirName="${data.dirName}" season="${data.season}"`);
         this._logger.debug(`Extracted serial data regex: "${this.regexNameSeason}"`);
@@ -19144,7 +19144,7 @@ class Torrentdone {
         const data = {
             name,
             year,
-            three_d: this.regexThreeD.test(name),
+            three_d: this.regexThreeD.test(name)
         };
         this._logger.debug(`Extracted data (${this.RELEASER}): name="${data.name}" year="${data.year}" three_d="${data.three_d}"`);
         this._logger.debug(`Extracted film data regex: "${this.regexNameYear}"`);
@@ -19159,7 +19159,7 @@ class Torrentdone {
         const data = {
             name,
             year,
-            three_d: false,
+            three_d: false
         };
         this._logger.debug(`Extracted data (${this.RELEASER}): name="${data.name}" year="${data.year}" only 2D`);
         return data;
