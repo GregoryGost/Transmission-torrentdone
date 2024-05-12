@@ -1,9 +1,11 @@
 #!/bin/bash -e
 
-if [ -z "$1" ]; then
+BRANCH="$1"
+
+if [[ -n "$BRANCH" ]]; then
 	BRANCH="master"
 else
-	BRANCH="$1"
+	
 fi
 
 if which git 2> /dev/null > /dev/null; then
