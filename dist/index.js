@@ -19038,7 +19038,7 @@ class Torrentdone {
         return this._logger;
     }
     connectCommandCreate() {
-        return `transmission-remote ${this.config.ipAddress}:${this.config.port} --auth ${this.config.login}:${this.config.password}`;
+        return `transmission-remote ${this.config.ipAddress}:${this.config.port} --auth ${this.config.login}:*****`;
     }
     moveCommandCreate(saving_path) {
         return `${this.connect} --torrent ${this.TR_TORRENT_ID} --move "${saving_path}"`;

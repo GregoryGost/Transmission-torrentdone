@@ -175,7 +175,7 @@ describe('torrentdone.ts - Serials single files', () => {
     expect(logDebugMock).toHaveBeenNthCalledWith(13, `Saving path directories is created`);
     expect(logDebugMock).toHaveBeenNthCalledWith(
       14,
-      `Move command: "transmission-remote 127.0.0.1:9091 --auth test:password --torrent 100 --move "${testMntDataPath}${normalize(`/media/TV Shows/The Handmaid's Tale/Season 05`)}""`
+      `Move command: "transmission-remote 127.0.0.1:9091 --auth test:***** --torrent 100 --move "${testMntDataPath}${normalize(`/media/TV Shows/The Handmaid's Tale/Season 05`)}""`
     );
     expect(logDebugMock).toHaveBeenNthCalledWith(15, `Start moving file...`);
     expect(logDebugMock).toHaveBeenNthCalledWith(
