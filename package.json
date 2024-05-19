@@ -28,7 +28,7 @@
     "package": "pnpm ncc build src/index.ts -o dist --license licenses.txt",
     "package:watch": "pnpm run package -- --watch",
     "all": "pnpm run format:write && pnpm run lint && pnpm run ci-test && pnpm run coverage && pnpm run package",
-    "outdated-lib": "pnpm outdated"
+    "check-lib": "pnpm outdated"
   },
   "engines": {
     "node": ">=20"
@@ -37,9 +37,9 @@
     "@jest/globals": "29.7.0",
     "@types/jest": "29.5.12",
     "@types/nconf": "0.10.6",
-    "@types/node": "20.12.11",
-    "@typescript-eslint/eslint-plugin": "7.8.0",
-    "@typescript-eslint/parser": "7.8.0",
+    "@types/node": "20.12.12",
+    "@typescript-eslint/eslint-plugin": "7.9.0",
+    "@typescript-eslint/parser": "7.9.0",
     "@vercel/ncc": "0.38.1",
     "eslint": "8.57.0",
     "eslint-plugin-github": "4.10.2",
