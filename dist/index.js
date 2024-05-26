@@ -18772,9 +18772,6 @@ class Config {
     get login() {
         return this._login;
     }
-    get password() {
-        return this._password;
-    }
     get mediaPath() {
         return this._mediaPath;
     }

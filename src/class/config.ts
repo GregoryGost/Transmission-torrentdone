@@ -194,9 +194,9 @@ class Config {
     return this._login;
   }
 
-  get password(): string | undefined {
-    return this._password;
-  }
+  // get password(): string | undefined {
+  //   return this._password;
+  // }
 
   get mediaPath(): string {
     return this._mediaPath;
