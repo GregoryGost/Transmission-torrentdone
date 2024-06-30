@@ -9,6 +9,8 @@ updates:
       timezone: 'Europe/Moscow'
     labels:
       - actions
+    reviewers:
+      - GregoryGost
     groups:
       actions-minor:
         update-types:
@@ -25,6 +27,8 @@ updates:
     labels:
       - pnpm
       - dependencies
+    reviewers:
+      - GregoryGost
     groups:
       development:
         dependency-type: development
