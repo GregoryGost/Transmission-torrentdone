@@ -44,7 +44,7 @@ jobs:
 
       - name: Lint Codebase
         id: super-linter
-        uses: super-linter/super-linter/slim@v6
+        uses: super-linter/super-linter/slim@v6.8.0
         env:
           DEFAULT_BRANCH: develop
           FILTER_REGEX_EXCLUDE: dist/**/*
@@ -52,5 +52,6 @@ jobs:
           TYPESCRIPT_DEFAULT_STYLE: prettier
           VALIDATE_ALL_CODEBASE: true
           VALIDATE_JAVASCRIPT_STANDARD: false
+          VALIDATE_TYPESCRIPT_STANDARD: false
           VALIDATE_JSCPD: false
           VALIDATE_BASH_EXEC: false
