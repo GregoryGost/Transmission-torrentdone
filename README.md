@@ -131,9 +131,9 @@ v20.11.0
 ```shell
 mkdir /opt/torrentdone
 cd /opt/torrentdone
+git config --global --add safe.directory /opt/torrentdone
 git clone --depth 1 --branch main https://github.com/GregoryGost/transmission-torrentdone.git .
 chown -R debian-transmission:debian-transmission /opt/torrentdone
-chmod +x /opt/torrentdone/dist/index.js /opt/torrentdone/update.sh
 ```
 
 ### Конфигурирование
@@ -184,7 +184,7 @@ curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt update && apt upgrade -y
 ```
 
-Для обновления из `master` ветки необходимо запустить файл `update.sh` без указания каких-либо параметров
+Для обновления из `main` ветки необходимо запустить файл `update.sh` без указания каких-либо параметров
 
 ```shell
 ./scripts/update.sh

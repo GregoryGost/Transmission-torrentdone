@@ -8,6 +8,7 @@ fi
 
 if which git 2>/dev/null >/dev/null; then
 	echo "Updating source..."
+  cd ..
 	git pull origin "$BRANCH"
 else
 	echo "Skipped Updating sources, no GIT found"
