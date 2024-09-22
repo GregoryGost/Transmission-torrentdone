@@ -126,13 +126,13 @@ node -v
 v20.11.0
 ```
 
-Далее создаем папку под приложение и настраиваем его
+Далее создаем папку под приложение, делаем файл исполняемым
 
 ```shell
 mkdir /opt/torrentdone
 cd /opt/torrentdone
 wget https://raw.githubusercontent.com/GregoryGost/transmission-torrentdone/refs/heads/main/dist/index.js
-chown -R debian-transmission:debian-transmission /opt/torrentdone
+chmod +x index.js
 ```
 
 ### Конфигурирование
@@ -148,6 +148,12 @@ nano /opt/torrentdone/config.json
   "login": "transmission_login",
   "password": "<your_password>"
 }
+```
+
+Назначаем папку и файлы пользователю Transmission
+
+```shell
+chown -R debian-transmission:debian-transmission /opt/torrentdone
 ```
 
 Обязательные:
