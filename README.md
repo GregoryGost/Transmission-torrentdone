@@ -193,13 +193,13 @@ apt update && apt upgrade -y
 Для обновления можно просто перекачать `index.js` файл
 
 ```shell
-wget https://raw.githubusercontent.com/GregoryGost/transmission-torrentdone/refs/heads/main/dist/index.js
+wget -O index.js https://raw.githubusercontent.com/GregoryGost/transmission-torrentdone/refs/heads/main/dist/index.js
 ```
 
 Если вы хотите обновить из другой ветки, просто поменяйте её название в пути скачивания
 
 ```shell
-wget https://raw.githubusercontent.com/GregoryGost/transmission-torrentdone/refs/heads/develop/dist/index.js
+wget -O index.js https://raw.githubusercontent.com/GregoryGost/transmission-torrentdone/refs/heads/develop/dist/index.js
 ```
 
 ## Алгоритм обработки торрентов
