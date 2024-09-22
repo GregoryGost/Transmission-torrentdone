@@ -111,7 +111,7 @@
 Команды для Proxmox LXC Debian под root
 
 ```shell
-apt update && apt upgrade -y && apt install -y curl git apt-transport-https
+apt update && apt upgrade -y && apt install -y wget
 ```
 
 Ставим Node.js  
@@ -131,8 +131,7 @@ v20.11.0
 ```shell
 mkdir /opt/torrentdone
 cd /opt/torrentdone
-git config --global --add safe.directory /opt/torrentdone
-git clone --depth 1 --branch main https://github.com/GregoryGost/transmission-torrentdone.git .
+wget https://raw.githubusercontent.com/GregoryGost/transmission-torrentdone/refs/heads/main/dist/index.js
 chown -R debian-transmission:debian-transmission /opt/torrentdone
 ```
 
@@ -177,23 +176,23 @@ nano /opt/torrentdone/config.json
 
 ## Обновление
 
-Стоит обновить Node.js. Как пример обновление на 20 LTS версию.
+Стоит обновить Node.js если скрипт поддерживает её. Как пример обновление на 20 LTS версию.
 
 ```shell
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt update && apt upgrade -y
 ```
 
-Для обновления из `main` ветки необходимо запустить файл `update.sh` без указания каких-либо параметров
+Для обновления можно просто перекачать `index.js` файл
 
 ```shell
-./scripts/update.sh
+wget https://raw.githubusercontent.com/GregoryGost/transmission-torrentdone/refs/heads/main/dist/index.js
 ```
 
-Если вы хотите обновить из другой ветки, просто передайте её название скрипту обновления
+Если вы хотите обновить из другой ветки, просто поменяйте её название в пути скачивания
 
 ```shell
-./scripts/update.sh develop
+wget https://raw.githubusercontent.com/GregoryGost/transmission-torrentdone/refs/heads/develop/dist/index.js
 ```
 
 ## Алгоритм обработки торрентов
