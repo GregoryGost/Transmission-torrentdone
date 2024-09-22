@@ -19117,6 +19117,7 @@ class Torrentdone {
         }
     }
     extractSerialData(file_name) {
+        this._logger.debug(`Extract serial data on regex: "${this.regexNameSeason}" from file "${file_name}"`);
         const regexExec = this.regexNameSeason.exec(file_name);
         if (regexExec === null)
             throw new Error(`No data extracted for file "${file_name}"`);
