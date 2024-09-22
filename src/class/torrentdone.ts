@@ -120,7 +120,7 @@ class Torrentdone {
   private readonly regexNameYearLostfilm = /^(.+).+(1080|720).+(lostfilm).+$/i;
   private readonly regexSerial_Novafilm: RegExp = /(s[0-9]{2}e[0-9]{2}).+(novafilm\.tv)/i;
   private readonly regexFilm_Releaser: RegExp = /^((?!s[0-9]{2}e[0-9]{2}).)*$/i;
-  private readonly regexNameSeason: RegExp = /(.+)\.([sS]([0-9]{2}))/i;
+  private readonly regexNameSeason: RegExp = /(.+)\.?([sS]([0-9]{2}))/i;
   private readonly regexNameYear: RegExp = /^(.+)\s{0,1}([.(_\-\s]((19|20)[0-9]{2})[.)_\-\s]).+$/i;
   private readonly regexThreeD = /[.(_\-\s](3D)[.(_\-\s]?/i;
 
@@ -286,7 +286,7 @@ class Torrentdone {
     const regexExec = this.regexNameSeason.exec(file_name);
     if (regexExec === null) throw new Error(`No data extracted for file "${file_name}"`);
     // const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s|\_)/g, ' ');
-    const name: string = Torrentdone.capitalize(regexExec[1]);
+    const name: string = Torrentdone.capitalize(regexExec[1]).trim().replace(/^\./g, '').replace(/\.$/g, '');
     const dirName: string = name.replace(/(\.|\s|_)/g, ' ');
     const season = `Season ${regexExec[3]}`;
     const data: SerialDataI = {

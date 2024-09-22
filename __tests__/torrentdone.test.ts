@@ -162,7 +162,7 @@ describe('torrentdone.ts - Serials single files', () => {
       8,
       `Extracted data (lostfilm): name="The.Handmaid's.Tale" dirName="The Handmaid's Tale" season="Season 05"`
     );
-    expect(logDebugMock).toHaveBeenNthCalledWith(9, `Extracted serial data regex: "/(.+)\\.([sS]([0-9]{2}))/i"`);
+    expect(logDebugMock).toHaveBeenNthCalledWith(9, `Extracted serial data regex: "/(.+)\\.?([sS]([0-9]{2}))/i"`);
     expect(logDebugMock).toHaveBeenNthCalledWith(
       10,
       `Processing serial file: "The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv"`
@@ -408,6 +408,63 @@ describe('torrentdone.ts - Serials single files', () => {
     await torrentdone.main();
     // log Info
     expect(logInfoMock).toHaveBeenNthCalledWith(3, `TORRENT ID: "104" FINISH: START PROCESS ...`);
+    // log Error
+    expect(logErrorMock).not.toHaveBeenCalled();
+  });
+  // 105
+  it(`OK - 104 - The Penguin S01E01.1080p.rus.LostFilm.TV.mkv`, async () => {
+    env.TR_APP_VERSION = version;
+    env.TR_TORRENT_ID = '105';
+    env.TR_TORRENT_NAME = `The Penguin S01E01.1080p.rus.LostFilm.TV.mkv`;
+    env.TR_TORRENT_DIR = testMntDownloadsPath;
+    env.TR_TORRENT_HASH = '540d0ae0eac6cc48e485e54293b19b858db355de';
+    env.TR_TIME_LOCALTIME = 'Sat Sep  4 21:22:09 2022';
+    env.TR_TORRENT_LABELS = '';
+    env.TR_TORRENT_BYTES_DOWNLOADED = '';
+    env.TR_TORRENT_TRACKERS = '';
+    //
+    const torrentdone: Torrentdone = new Torrentdone(testRootConfigsPath);
+    //
+    logInfoMock = jest
+      .spyOn(torrentdone.logger, 'info')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    logDebugMock = jest
+      .spyOn(torrentdone.logger, 'debug')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    logErrorMock = jest
+      .spyOn(torrentdone.logger, 'error')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    jest.spyOn(torrentdone.logger, 'trace').mockImplementation();
+    //
+    jest.spyOn(cproc, 'execSync').mockImplementation(() => {
+      copyFileSync(
+        normalize(`${testMntDownloadsPath}/The Penguin S01E01.1080p.rus.LostFilm.TV.mkv`),
+        normalize(
+          `${testMntDataPath}/media/TV Shows/The Penguin/Season 01/The Penguin S01E01.1080p.rus.LostFilm.TV.mkv`
+        )
+      );
+      return `127.0.0.1:9091/transmission/rpc/\nresponded: "success"`;
+    });
+    //
+    expect(torrentdone.TR_APP_VERSION).toEqual(version);
+    expect(torrentdone.TR_TORRENT_ID).toEqual(105);
+    expect(torrentdone.TR_TORRENT_NAME).toEqual(`The Penguin S01E01.1080p.rus.LostFilm.TV.mkv`);
+    expect(torrentdone.TR_TORRENT_DIR).toEqual(testMntDownloadsPath);
+    expect(torrentdone.TR_TORRENT_HASH).toEqual('540d0ae0eac6cc48e485e54293b19b858db355de');
+    expect(torrentdone.TR_TIME_LOCALTIME).toEqual('Sat Sep  4 21:22:09 2022');
+    expect(torrentdone.TR_TORRENT_LABELS).toEqual('');
+    expect(torrentdone.TR_TORRENT_BYTES_DOWNLOADED).toEqual(0);
+    expect(torrentdone.TR_TORRENT_TRACKERS).toEqual('');
+    //
+    await torrentdone.main();
+    // log Info
+    expect(logInfoMock).toHaveBeenNthCalledWith(3, `TORRENT ID: "105" FINISH: START PROCESS ...`);
     // log Error
     expect(logErrorMock).not.toHaveBeenCalled();
   });
