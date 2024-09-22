@@ -283,7 +283,8 @@ class Torrentdone {
    * @returns - serial data
    */
   private extractSerialData(file_name: string): SerialDataI {
-    const regexExec = this.regexNameSeason.exec(file_name);
+    this._logger.debug(`Extract serial data on regex: "${this.regexNameSeason}" from file "${file_name}"`);
+    const regexExec: RegExpExecArray | null = this.regexNameSeason.exec(file_name);
     if (regexExec === null) throw new Error(`No data extracted for file "${file_name}"`);
     // const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s|\_)/g, ' ');
     const name: string = Torrentdone.capitalize(regexExec[1]).trim().replace(/^\./g, '').replace(/\.$/g, '');
