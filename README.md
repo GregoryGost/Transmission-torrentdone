@@ -47,7 +47,7 @@
 
 ```json
 "script-torrent-done-enabled": true,
-"script-torrent-done-filename": "/opt/torrentdone/dist/index.js",
+"script-torrent-done-filename": "/opt/torrentdone/index.js",
 "umask": 0,
 ```
 
