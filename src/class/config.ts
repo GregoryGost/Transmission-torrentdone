@@ -23,11 +23,6 @@ class Config {
    */
   private readonly _devmode: boolean;
   /**
-   * This Application version
-   * Read from base file package.json
-   */
-  private readonly _appVersion: string;
-  /**
    * Log level.
    * if devmode(true) = `trace`.
    * Variants: (`trace` | `debug` | `info` | `warn` | `error`).
@@ -61,11 +56,11 @@ class Config {
   /**
    * Transmission-daemon access login
    */
-  private readonly _login: string | undefined;
+  private readonly _trLogin: string | undefined;
   /**
    * Transmission-daemon access password
    */
-  private readonly _password: string | undefined;
+  private readonly _trPass: string | undefined;
   /**
    * Path to move and copy movie and series files
    */
@@ -129,13 +124,14 @@ class Config {
    */
   private readonly _trTorrentTrackers: string;
 
+  private maxWhileCount = 10;
+
   constructor(root_path?: string) {
-    this._rootPath = root_path ?? Config.getRootDir();
+    this._rootPath = root_path ?? this.getRootDir();
     this.init();
-    this._login = this.getParam('login');
-    this._password = this.getParam('password');
+    this._trLogin = this.getParam('login');
+    this._trPass = this.getParam('password');
     this._devmode = this.getParam('node_env') === 'development';
-    this._appVersion = this.getParam('version');
     this._logLevel = this._devmode ? 'trace' : this.getParam('log_level');
     this._dateFormat = this.getParam('date_format');
     this._logFilePath = this.getParam('log_file_path');
@@ -166,10 +162,6 @@ class Config {
     return this._devmode;
   }
 
-  get appVersion(): string {
-    return this._appVersion;
-  }
-
   get logLevel(): string {
     return this._logLevel;
   }
@@ -190,13 +182,13 @@ class Config {
     return this._port;
   }
 
-  get login(): string | undefined {
-    return this._login;
+  get trLogin(): string | undefined {
+    return this._trLogin;
   }
 
-  // get password(): string | undefined {
-  //   return this._password;
-  // }
+  get trPass(): string | undefined {
+    return this._trPass;
+  }
 
   get mediaPath(): string {
     return this._mediaPath;
@@ -333,11 +325,14 @@ class Config {
    * Determining the Project Root Path
    * @returns {string} application root path
    */
-  private static getRootDir(): string {
+  private getRootDir(): string {
     const filename: string = fileURLToPath(pathToFileURL(__filename).toString());
     const dir = dirname(filename);
     let currentDir: string = dir;
     while (!existsSync(join(currentDir, 'package.json'))) {
+      if (this.maxWhileCount === 0)
+        throw new Error(`The number of attempts to search for the root directory has expired.`);
+      this.maxWhileCount--;
       currentDir = join(currentDir, '..');
     }
     return normalize(currentDir);

@@ -156,7 +156,7 @@ class Torrentdone {
    * @returns connect command
    */
   private connectCommandCreate(): string {
-    return `transmission-remote ${this.config.ipAddress}:${this.config.port} --auth ${this.config.login}:*****`;
+    return `transmission-remote ${this.config.ipAddress}:${this.config.port} --auth ${this.config.trLogin}:${this.config.trPass}`;
   }
 
   /**
@@ -283,7 +283,8 @@ class Torrentdone {
    * @returns - serial data
    */
   private extractSerialData(file_name: string): SerialDataI {
-    const regexExec = this.regexNameSeason.exec(file_name);
+    this._logger.debug(`Extract serial data on regex: "${this.regexNameSeason}" from file "${file_name}"`);
+    const regexExec: RegExpExecArray | null = this.regexNameSeason.exec(file_name);
     if (regexExec === null) throw new Error(`No data extracted for file "${file_name}"`);
     // const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s|\_)/g, ' ');
     const name: string = Torrentdone.capitalize(regexExec[1]).trim().replace(/^\./g, '').replace(/\.$/g, '');
@@ -297,7 +298,6 @@ class Torrentdone {
     this._logger.debug(
       `Extracted data (${this.RELEASER}): name="${data.name}" dirName="${data.dirName}" season="${data.season}"`
     );
-    this._logger.debug(`Extracted serial data regex: "${this.regexNameSeason}"`);
     return data;
   }
 
@@ -531,7 +531,7 @@ class Torrentdone {
    */
   private startInfo(): void {
     this._logger.info('##############################################################################################');
-    this._logger.info(`transmission-torrentdone: "${this.config.appVersion}"`);
+    this._logger.info(`transmission-torrentdone RUN`);
     this._logger.info(`TORRENT ID: "${this.TR_TORRENT_ID}" FINISH: START PROCESS ...`);
     this._logger.info('==============================================================================================');
     this._logger.info(`VER:   "Transmission version - ${this.TR_APP_VERSION}"`);

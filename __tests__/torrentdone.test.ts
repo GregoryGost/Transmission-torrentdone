@@ -135,7 +135,7 @@ describe('torrentdone.ts - Serials single files', () => {
       1,
       '##############################################################################################'
     );
-    expect(logInfoMock).toHaveBeenNthCalledWith(2, `transmission-torrentdone: "99.99.99"`);
+    expect(logInfoMock).toHaveBeenNthCalledWith(2, `transmission-torrentdone RUN`);
     expect(logInfoMock).toHaveBeenNthCalledWith(3, `TORRENT ID: "100" FINISH: START PROCESS ...`);
     expect(logInfoMock).toHaveBeenNthCalledWith(
       4,
@@ -160,9 +160,12 @@ describe('torrentdone.ts - Serials single files', () => {
     expect(logDebugMock).toHaveBeenNthCalledWith(7, `File check is regex: "/(s[0-9]{2}e[0-9]{2}).+(lostfilm\\.tv)/i"`);
     expect(logDebugMock).toHaveBeenNthCalledWith(
       8,
+      `Extract serial data on regex: "/(.+)\\.?([sS]([0-9]{2}))/i" from file "The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv"`
+    );
+    expect(logDebugMock).toHaveBeenNthCalledWith(
+      9,
       `Extracted data (lostfilm): name="The.Handmaid's.Tale" dirName="The Handmaid's Tale" season="Season 05"`
     );
-    expect(logDebugMock).toHaveBeenNthCalledWith(9, `Extracted serial data regex: "/(.+)\\.?([sS]([0-9]{2}))/i"`);
     expect(logDebugMock).toHaveBeenNthCalledWith(
       10,
       `Processing serial file: "The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv"`
@@ -175,7 +178,7 @@ describe('torrentdone.ts - Serials single files', () => {
     expect(logDebugMock).toHaveBeenNthCalledWith(13, `Saving path directories is created`);
     expect(logDebugMock).toHaveBeenNthCalledWith(
       14,
-      `Move command: "transmission-remote 127.0.0.1:9091 --auth test:***** --torrent 100 --move "${testMntDataPath}${normalize(`/media/TV Shows/The Handmaid's Tale/Season 05`)}""`
+      `Move command: "transmission-remote 127.0.0.1:9091 --auth test:testPwd --torrent 100 --move "${testMntDataPath}${normalize(`/media/TV Shows/The Handmaid's Tale/Season 05`)}""`
     );
     expect(logDebugMock).toHaveBeenNthCalledWith(15, `Start moving file...`);
     expect(logDebugMock).toHaveBeenNthCalledWith(

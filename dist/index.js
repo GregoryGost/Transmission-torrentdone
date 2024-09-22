@@ -18698,14 +18698,13 @@ class Config {
     _rootPath;
     nconf = nconf_1.default;
     _devmode;
-    _appVersion;
     _logLevel;
     _dateFormat;
     _logFilePath;
     _ipAddress;
     _port;
-    _login;
-    _password;
+    _trLogin;
+    _trPass;
     _mediaPath;
     _serialsRootDir;
     _filmsRootDir;
@@ -18719,13 +18718,13 @@ class Config {
     _trTorrentLabels;
     _trTorrentBytesDownloaded;
     _trTorrentTrackers;
+    maxWhileCount = 10;
     constructor(root_path) {
-        this._rootPath = root_path ?? Config.getRootDir();
+        this._rootPath = root_path ?? this.getRootDir();
         this.init();
-        this._login = this.getParam('login');
-        this._password = this.getParam('password');
+        this._trLogin = this.getParam('login');
+        this._trPass = this.getParam('password');
         this._devmode = this.getParam('node_env') === 'development';
-        this._appVersion = this.getParam('version');
         this._logLevel = this._devmode ? 'trace' : this.getParam('log_level');
         this._dateFormat = this.getParam('date_format');
         this._logFilePath = this.getParam('log_file_path');
@@ -18751,9 +18750,6 @@ class Config {
     get devmode() {
         return this._devmode;
     }
-    get appVersion() {
-        return this._appVersion;
-    }
     get logLevel() {
         return this._logLevel;
     }
@@ -18769,8 +18765,11 @@ class Config {
     get port() {
         return this._port;
     }
-    get login() {
-        return this._login;
+    get trLogin() {
+        return this._trLogin;
+    }
+    get trPass() {
+        return this._trPass;
     }
     get mediaPath() {
         return this._mediaPath;
@@ -18852,11 +18851,14 @@ class Config {
             throw new Error(`One or more parameters do not match the requirements: TR_APP_VERSION - "${trAppVersion}", TR_TORRENT_ID - "${trTorrentId}", TR_TORRENT_DIR - "${trTorrentDir}", TR_TORRENT_NAME - "${trTorrentName}", TR_TORRENT_HASH - "${trTorrentHash}", TR_TIME_LOCALTIME - "${trTimeLocaltime}"`);
         }
     }
-    static getRootDir() {
+    getRootDir() {
         const filename = (0, node_url_1.fileURLToPath)((0, node_url_1.pathToFileURL)(__filename).toString());
         const dir = (0, node_path_1.dirname)(filename);
         let currentDir = dir;
         while (!(0, node_fs_1.existsSync)((0, node_path_1.join)(currentDir, 'package.json'))) {
+            if (this.maxWhileCount === 0)
+                throw new Error(`The number of attempts to search for the root directory has expired.`);
+            this.maxWhileCount--;
             currentDir = (0, node_path_1.join)(currentDir, '..');
         }
         return (0, node_path_1.normalize)(currentDir);
@@ -19035,7 +19037,7 @@ class Torrentdone {
         return this._logger;
     }
     connectCommandCreate() {
-        return `transmission-remote ${this.config.ipAddress}:${this.config.port} --auth ${this.config.login}:*****`;
+        return `transmission-remote ${this.config.ipAddress}:${this.config.port} --auth ${this.config.trLogin}:${this.config.trPass}`;
     }
     moveCommandCreate(saving_path) {
         return `${this.connect} --torrent ${this.TR_TORRENT_ID} --move "${saving_path}"`;
@@ -19117,6 +19119,7 @@ class Torrentdone {
         }
     }
     extractSerialData(file_name) {
+        this._logger.debug(`Extract serial data on regex: "${this.regexNameSeason}" from file "${file_name}"`);
         const regexExec = this.regexNameSeason.exec(file_name);
         if (regexExec === null)
             throw new Error(`No data extracted for file "${file_name}"`);
@@ -19129,7 +19132,6 @@ class Torrentdone {
             season
         };
         this._logger.debug(`Extracted data (${this.RELEASER}): name="${data.name}" dirName="${data.dirName}" season="${data.season}"`);
-        this._logger.debug(`Extracted serial data regex: "${this.regexNameSeason}"`);
         return data;
     }
     extractFilmData(file_name) {
@@ -19275,7 +19277,7 @@ class Torrentdone {
     }
     startInfo() {
         this._logger.info('##############################################################################################');
-        this._logger.info(`transmission-torrentdone: "${this.config.appVersion}"`);
+        this._logger.info(`transmission-torrentdone RUN`);
         this._logger.info(`TORRENT ID: "${this.TR_TORRENT_ID}" FINISH: START PROCESS ...`);
         this._logger.info('==============================================================================================');
         this._logger.info(`VER:   "Transmission version - ${this.TR_APP_VERSION}"`);

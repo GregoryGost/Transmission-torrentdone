@@ -47,13 +47,13 @@
 
 ```json
 "script-torrent-done-enabled": true,
-"script-torrent-done-filename": "/opt/torrentdone/dist/index.js",
+"script-torrent-done-filename": "/opt/torrentdone/index.js",
 "umask": 0,
 ```
 
 История версий:
 
-- v3.1.0 - (22.09.2024) - Поправлено получение имени сериала. Изменено регулярное выражение для обработки сериалов
+- v3.1.1 - (22.09.2024) - Поправлено получение имени сериала. Изменено регулярное выражение для обработки сериалов
   LostFilm. Изменился формат. Пример `The Penguin S01E01.1080p.rus.LostFilm.TV.mkv`
 - v3.0.0 - (21.04.2024) - Изменена архитектура итогового приложения. Теперь нет необходимости ставить зависимости. Все
   собрано в единый `index.js` файл. Достаточно только базового Node.js. Дополнительно осуществлен переход на новую
@@ -111,7 +111,7 @@
 Команды для Proxmox LXC Debian под root
 
 ```shell
-apt update && apt upgrade -y && apt install -y curl git apt-transport-https
+apt update && apt upgrade -y && apt install -y curl wget
 ```
 
 Ставим Node.js  
@@ -119,21 +119,22 @@ apt update && apt upgrade -y && apt install -y curl git apt-transport-https
 Выбрать LTS версию не ниже 20
 
 ```shell
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-apt update
-apt install -y nodejs
+curl -fsSL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh
+bash nodesource_setup.sh
+apt update && apt install -y nodejs
 node -v
-v20.11.0
+v20.17.0
 ```
 
-Далее создаем папку под приложение и настраиваем его
+Далее создаем папку под приложение, делаем файл исполняемым. Создаем фейковый файл `package.json` (нужно для корректного
+определения корневой дирректории)
 
 ```shell
 mkdir /opt/torrentdone
 cd /opt/torrentdone
-git clone --depth 1 --branch main https://github.com/GregoryGost/transmission-torrentdone.git .
-chown -R debian-transmission:debian-transmission /opt/torrentdone
-chmod +x /opt/torrentdone/dist/index.js /opt/torrentdone/update.sh
+wget https://raw.githubusercontent.com/GregoryGost/transmission-torrentdone/refs/heads/main/dist/index.js
+chmod +x index.js
+echo '{"version":"3.1.1"}' > package.json
 ```
 
 ### Конфигурирование
@@ -149,6 +150,12 @@ nano /opt/torrentdone/config.json
   "login": "transmission_login",
   "password": "<your_password>"
 }
+```
+
+Назначаем папку и файлы пользователю Transmission
+
+```shell
+chown -R debian-transmission:debian-transmission /opt/torrentdone
 ```
 
 Обязательные:
@@ -177,23 +184,24 @@ nano /opt/torrentdone/config.json
 
 ## Обновление
 
-Стоит обновить Node.js. Как пример обновление на 20 LTS версию.
+Стоит обновить Node.js если скрипт поддерживает её. Как пример обновление на 20 LTS версию.
 
 ```shell
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+curl -fsSL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh
+bash nodesource_setup.sh
 apt update && apt upgrade -y
 ```
 
-Для обновления из `master` ветки необходимо запустить файл `update.sh` без указания каких-либо параметров
+Для обновления можно просто перекачать `index.js` файл
 
 ```shell
-./scripts/update.sh
+wget -O index.js https://raw.githubusercontent.com/GregoryGost/transmission-torrentdone/refs/heads/main/dist/index.js
 ```
 
-Если вы хотите обновить из другой ветки, просто передайте её название скрипту обновления
+Если вы хотите обновить из другой ветки, просто поменяйте её название в пути скачивания
 
 ```shell
-./scripts/update.sh develop
+wget -O index.js https://raw.githubusercontent.com/GregoryGost/transmission-torrentdone/refs/heads/develop/dist/index.js
 ```
 
 ## Алгоритм обработки торрентов
@@ -219,7 +227,7 @@ apt update && apt upgrade -y
 
 - индивидуальные файлы **LostFilm.TV**:
 
-```shell
+```txt
 The.Mandalorian.S02E07.1080p.rus.LostFilm.TV.mkv
 The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv
 Andor.S01E10.720p.rus.LostFilm.TV.mp4
@@ -227,7 +235,7 @@ Andor.S01E10.720p.rus.LostFilm.TV.mp4
 
 - директория **LostFilm.TV** (сезон полностью):
 
-```shell
+```txt
 Obi-Wan Kenobi 1 - LostFilm.TV [1080p]
 Breaking Bad 5 - LostFilm.TV [1080p]
 Peaky Blinders 6 - LostFilm.TV [1080p]
@@ -237,7 +245,7 @@ Peaky Blinders 6 - LostFilm.TV [1080p]
 
 - индивидуальные файлы **NovaFilm.TV**:
 
-```shell
+```txt
 californication.s06e08.hdtv.rus.eng.novafilm.tv.avi
 ```
 
@@ -260,14 +268,14 @@ californication.s06e08.hdtv.rus.eng.novafilm.tv.avi
 
 Корректные примеры названия фильмов:
 
-```shell
+```txt
 Blade Runner 2049 (2017).mkv
 Аватар 3D (2009).mkv
 ```
 
 Для отдельных релизеров реализована отделная обработка файлов фильмов
 
-```shell
+```txt
 All.Quiet.on.the.Western.Front.1080p.rus.LostFilm.TV.mkv
 Bullet.Train.1080p.rus.LostFilm.TV.avi
 ```
