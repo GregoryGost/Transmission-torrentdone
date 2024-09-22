@@ -2,9 +2,10 @@ name: Continuous Integration
 
 on:
   pull_request:
+    branches:
+      - develop
   push:
     branches:
-      - main
       - develop
 
 permissions:
@@ -22,7 +23,7 @@ jobs:
 
       - name: Install pnpm
         id: setup-pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: ^9
 

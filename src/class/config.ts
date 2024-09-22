@@ -36,8 +36,8 @@ class Config {
   private readonly _logLevel: string;
   /**
    * Date and time format. Used in winston and application.
-   * Formatted string accepted by the [fecha](https://github.com/taylorhakes/fecha) module.
-   * Default: `DD.MM.YYYY HH:mm:ss`
+   * Formatted string accepted by the [date-format](https://www.npmjs.com/package/date-format).
+   * Default: `dd.MM.yyyy_hh:mm:ss.SSS`
    */
   private readonly _dateFormat: string;
   //
@@ -194,9 +194,9 @@ class Config {
     return this._login;
   }
 
-  get password(): string | undefined {
-    return this._password;
-  }
+  // get password(): string | undefined {
+  //   return this._password;
+  // }
 
   get mediaPath(): string {
     return this._mediaPath;
@@ -265,7 +265,7 @@ class Config {
       date_format: 'dd.MM.yyyy_hh:mm:ss.SSS', // https://www.npmjs.com/package/date-format
       ip_address: '127.0.0.1',
       tcp_port: '9091',
-      allowed_media_extensions: 'mkv,mp4,avi',
+      allowed_media_extensions: 'mkv,mp4,avi'
     });
     this.nconf.load();
     this.check();

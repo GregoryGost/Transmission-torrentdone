@@ -4,6 +4,13 @@ updates:
     directory: /
     schedule:
       interval: weekly
+      day: sunday
+      time: '09:00'
+      timezone: 'Europe/Moscow'
+    labels:
+      - actions
+    reviewers:
+      - GregoryGost
     groups:
       actions-minor:
         update-types:
@@ -14,6 +21,14 @@ updates:
     directory: /
     schedule:
       interval: weekly
+      day: sunday
+      time: '09:00'
+      timezone: 'Europe/Moscow'
+    labels:
+      - pnpm
+      - dependencies
+    reviewers:
+      - GregoryGost
     groups:
       development:
         dependency-type: development

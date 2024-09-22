@@ -52,8 +52,8 @@ class ServerLogger {
           type: 'console',
           layout: {
             type: 'pattern',
-            pattern: `[%d{${this._config.dateFormat}}] : %[[%p]%] : %m`,
-          },
+            pattern: `[%d{${this._config.dateFormat}}] : %[[%p]%] : %m`
+          }
         },
         logFile: {
           type: 'file',
@@ -62,17 +62,17 @@ class ServerLogger {
           compress: true,
           layout: {
             type: 'pattern',
-            pattern: `[%d{${this._config.dateFormat}}] : [%p] : %m`,
-          },
-        },
+            pattern: `[%d{${this._config.dateFormat}}] : [%p] : %m`
+          }
+        }
       },
       categories: {
         default: {
           appenders: this._config.devmode ? ['console'] : ['console', 'logFile'],
           level: this._config.logLevel,
-          enableCallStack: this._config.devmode ? true : false,
-        },
-      },
+          enableCallStack: this._config.devmode ? true : false
+        }
+      }
     };
     this._log4js.configure(configServerLogger);
   }

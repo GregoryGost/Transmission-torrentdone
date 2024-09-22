@@ -2,7 +2,6 @@
 /**
  * Unit tests for src/class/config.ts
  */
-
 import { cwd } from 'node:process';
 import { normalize, join } from 'node:path';
 //
