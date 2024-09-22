@@ -111,7 +111,7 @@
 Команды для Proxmox LXC Debian под root
 
 ```shell
-apt update && apt upgrade -y && apt install -y wget
+apt update && apt upgrade -y && apt install -y curl wget
 ```
 
 Ставим Node.js  
@@ -119,11 +119,11 @@ apt update && apt upgrade -y && apt install -y wget
 Выбрать LTS версию не ниже 20
 
 ```shell
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-apt update
-apt install -y nodejs
+curl -fsSL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh
+bash nodesource_setup.sh
+apt update && apt install -y nodejs
 node -v
-v20.11.0
+v20.17.0
 ```
 
 Далее создаем папку под приложение, делаем файл исполняемым
@@ -185,7 +185,8 @@ chown -R debian-transmission:debian-transmission /opt/torrentdone
 Стоит обновить Node.js если скрипт поддерживает её. Как пример обновление на 20 LTS версию.
 
 ```shell
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+curl -fsSL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh
+bash nodesource_setup.sh
 apt update && apt upgrade -y
 ```
 
