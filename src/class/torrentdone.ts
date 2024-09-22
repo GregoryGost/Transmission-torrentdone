@@ -298,7 +298,6 @@ class Torrentdone {
     this._logger.debug(
       `Extracted data (${this.RELEASER}): name="${data.name}" dirName="${data.dirName}" season="${data.season}"`
     );
-    this._logger.debug(`Extracted serial data regex: "${this.regexNameSeason}"`);
     return data;
   }
 

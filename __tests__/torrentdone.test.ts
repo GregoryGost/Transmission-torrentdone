@@ -166,28 +166,27 @@ describe('torrentdone.ts - Serials single files', () => {
       9,
       `Extracted data (lostfilm): name="The.Handmaid's.Tale" dirName="The Handmaid's Tale" season="Season 05"`
     );
-    expect(logDebugMock).toHaveBeenNthCalledWith(10, `Extracted serial data regex: "/(.+)\\.?([sS]([0-9]{2}))/i"`);
     expect(logDebugMock).toHaveBeenNthCalledWith(
-      11,
+      10,
       `Processing serial file: "The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv"`
     );
     expect(logDebugMock).toHaveBeenNthCalledWith(
-      12,
+      11,
       `Saving path: "${testMntDataPath}${normalize(`/media/TV Shows/The Handmaid's Tale/Season 05`)}"`
     );
-    expect(logDebugMock).toHaveBeenNthCalledWith(13, `Saving path does not exist. Create the missing folders.`);
-    expect(logDebugMock).toHaveBeenNthCalledWith(14, `Saving path directories is created`);
+    expect(logDebugMock).toHaveBeenNthCalledWith(12, `Saving path does not exist. Create the missing folders.`);
+    expect(logDebugMock).toHaveBeenNthCalledWith(13, `Saving path directories is created`);
     expect(logDebugMock).toHaveBeenNthCalledWith(
-      15,
+      14,
       `Move command: "transmission-remote 127.0.0.1:9091 --auth test:testPwd --torrent 100 --move "${testMntDataPath}${normalize(`/media/TV Shows/The Handmaid's Tale/Season 05`)}""`
     );
-    expect(logDebugMock).toHaveBeenNthCalledWith(16, `Start moving file...`);
+    expect(logDebugMock).toHaveBeenNthCalledWith(15, `Start moving file...`);
     expect(logDebugMock).toHaveBeenNthCalledWith(
-      17,
+      16,
       `execResult: 127.0.0.1:9091/transmission/rpc/responded: "success"`
     );
     expect(logDebugMock).toHaveBeenNthCalledWith(
-      18,
+      17,
       `File final path: "${testMntDataPath}${normalize(`/media/TV Shows/The Handmaid's Tale/Season 05/The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv`)}"`
     );
     // Log Error
