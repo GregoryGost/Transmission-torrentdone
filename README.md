@@ -126,13 +126,15 @@ node -v
 v20.17.0
 ```
 
-Далее создаем папку под приложение, делаем файл исполняемым
+Далее создаем папку под приложение, делаем файл исполняемым. Создаем фейковый файл `package.json` (нужно для корректного
+определения корневой дирректории)
 
 ```shell
 mkdir /opt/torrentdone
 cd /opt/torrentdone
 wget https://raw.githubusercontent.com/GregoryGost/transmission-torrentdone/refs/heads/main/dist/index.js
 chmod +x index.js
+touch package.json
 ```
 
 ### Конфигурирование

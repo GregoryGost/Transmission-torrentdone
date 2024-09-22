@@ -532,7 +532,7 @@ class Torrentdone {
    */
   private startInfo(): void {
     this._logger.info('##############################################################################################');
-    this._logger.info(`transmission-torrentdone: "${this.config.appVersion}"`);
+    this._logger.info(`transmission-torrentdone RUN`);
     this._logger.info(`TORRENT ID: "${this.TR_TORRENT_ID}" FINISH: START PROCESS ...`);
     this._logger.info('==============================================================================================');
     this._logger.info(`VER:   "Transmission version - ${this.TR_APP_VERSION}"`);

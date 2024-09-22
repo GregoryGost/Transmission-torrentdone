@@ -135,7 +135,7 @@ describe('torrentdone.ts - Serials single files', () => {
       1,
       '##############################################################################################'
     );
-    expect(logInfoMock).toHaveBeenNthCalledWith(2, `transmission-torrentdone: "99.99.99"`);
+    expect(logInfoMock).toHaveBeenNthCalledWith(2, `transmission-torrentdone RUN`);
     expect(logInfoMock).toHaveBeenNthCalledWith(3, `TORRENT ID: "100" FINISH: START PROCESS ...`);
     expect(logInfoMock).toHaveBeenNthCalledWith(
       4,

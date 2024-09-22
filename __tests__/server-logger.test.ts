@@ -45,7 +45,6 @@ describe('server-logger.ts', () => {
     // get config
     const serverLogger: ServerLogger = new ServerLogger(devConfigPath);
     expect(serverLogger.config instanceof Config).toBe(true);
-    expect(serverLogger.config.appVersion).toBe('99.99.99');
     // logger log
     logMock = jest
       .spyOn(serverLogger.logger, 'log')

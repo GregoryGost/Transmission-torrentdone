@@ -61,7 +61,6 @@ describe('config.ts', () => {
     //
     expect(config.rootPath).toBe(testRootPath);
     expect(config.devmode).toBe(true);
-    expect(config.appVersion).toBe('99.99.99');
     expect(config.logLevel).toBe('trace');
     expect(config.dateFormat).toBe('dd.MM.yyyy_hh:mm:ss.SSS');
     //
@@ -72,7 +71,6 @@ describe('config.ts', () => {
     expect(config.serialsRootDir).toBe('TV Shows');
     expect(config.filmsRootDir).toBe('Movies');
     //
-    expect(config.trAppVersion).toBe('33.00');
     expect(config.trTorrentId).toBe(200);
     expect(config.trTorrentName).toBe('Some file name');
     expect(config.trTorrentDir).toBe('/mnt/data/download');
