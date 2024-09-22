@@ -56,11 +56,11 @@ class Config {
   /**
    * Transmission-daemon access login
    */
-  private readonly _login: string | undefined;
+  private readonly _trLogin: string | undefined;
   /**
    * Transmission-daemon access password
    */
-  private readonly _password: string | undefined;
+  private readonly _trPass: string | undefined;
   /**
    * Path to move and copy movie and series files
    */
@@ -129,8 +129,8 @@ class Config {
   constructor(root_path?: string) {
     this._rootPath = root_path ?? this.getRootDir();
     this.init();
-    this._login = this.getParam('login');
-    this._password = this.getParam('password');
+    this._trLogin = this.getParam('login');
+    this._trPass = this.getParam('password');
     this._devmode = this.getParam('node_env') === 'development';
     this._logLevel = this._devmode ? 'trace' : this.getParam('log_level');
     this._dateFormat = this.getParam('date_format');
@@ -182,13 +182,13 @@ class Config {
     return this._port;
   }
 
-  get login(): string | undefined {
-    return this._login;
+  get trLogin(): string | undefined {
+    return this._trLogin;
   }
 
-  // get password(): string | undefined {
-  //   return this._password;
-  // }
+  get trPass(): string | undefined {
+    return this._trPass;
+  }
 
   get mediaPath(): string {
     return this._mediaPath;

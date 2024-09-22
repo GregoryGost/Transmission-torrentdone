@@ -1,6 +1,6 @@
 {
   "login": "test",
-  "password": "password",
+  "password": "testPwd",
   "node_env": "development",
   "log_file_path": "./logs/torrentdone.log",
   "media_path": "./tests/mnt/data",

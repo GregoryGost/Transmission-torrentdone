@@ -18703,8 +18703,8 @@ class Config {
     _logFilePath;
     _ipAddress;
     _port;
-    _login;
-    _password;
+    _trLogin;
+    _trPass;
     _mediaPath;
     _serialsRootDir;
     _filmsRootDir;
@@ -18722,8 +18722,8 @@ class Config {
     constructor(root_path) {
         this._rootPath = root_path ?? this.getRootDir();
         this.init();
-        this._login = this.getParam('login');
-        this._password = this.getParam('password');
+        this._trLogin = this.getParam('login');
+        this._trPass = this.getParam('password');
         this._devmode = this.getParam('node_env') === 'development';
         this._logLevel = this._devmode ? 'trace' : this.getParam('log_level');
         this._dateFormat = this.getParam('date_format');
@@ -18765,8 +18765,11 @@ class Config {
     get port() {
         return this._port;
     }
-    get login() {
-        return this._login;
+    get trLogin() {
+        return this._trLogin;
+    }
+    get trPass() {
+        return this._trPass;
     }
     get mediaPath() {
         return this._mediaPath;
@@ -19034,7 +19037,7 @@ class Torrentdone {
         return this._logger;
     }
     connectCommandCreate() {
-        return `transmission-remote ${this.config.ipAddress}:${this.config.port} --auth ${this.config.login}:*****`;
+        return `transmission-remote ${this.config.ipAddress}:${this.config.port} --auth ${this.config.trLogin}:${this.config.trPass}`;
     }
     moveCommandCreate(saving_path) {
         return `${this.connect} --torrent ${this.TR_TORRENT_ID} --move "${saving_path}"`;

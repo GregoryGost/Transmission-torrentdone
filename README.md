@@ -134,7 +134,7 @@ mkdir /opt/torrentdone
 cd /opt/torrentdone
 wget https://raw.githubusercontent.com/GregoryGost/transmission-torrentdone/refs/heads/main/dist/index.js
 chmod +x index.js
-touch package.json
+echo '{"version":"3.1.1"}' > package.json
 ```
 
 ### Конфигурирование

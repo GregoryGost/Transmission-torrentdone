@@ -156,7 +156,7 @@ class Torrentdone {
    * @returns connect command
    */
   private connectCommandCreate(): string {
-    return `transmission-remote ${this.config.ipAddress}:${this.config.port} --auth ${this.config.login}:*****`;
+    return `transmission-remote ${this.config.ipAddress}:${this.config.port} --auth ${this.config.trLogin}:${this.config.trPass}`;
   }
 
   /**
