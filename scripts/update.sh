@@ -3,7 +3,7 @@
 BRANCH="$1"
 
 if [[ -n "$BRANCH" ]]; then
-	BRANCH="master"
+	BRANCH="main"
 fi
 
 if which git 2>/dev/null >/dev/null; then
