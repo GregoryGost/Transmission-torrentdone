@@ -224,7 +224,7 @@ wget https://raw.githubusercontent.com/GregoryGost/transmission-torrentdone/refs
 
 - индивидуальные файлы **LostFilm.TV**:
 
-```shell
+```txt
 The.Mandalorian.S02E07.1080p.rus.LostFilm.TV.mkv
 The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv
 Andor.S01E10.720p.rus.LostFilm.TV.mp4
@@ -232,7 +232,7 @@ Andor.S01E10.720p.rus.LostFilm.TV.mp4
 
 - директория **LostFilm.TV** (сезон полностью):
 
-```shell
+```txt
 Obi-Wan Kenobi 1 - LostFilm.TV [1080p]
 Breaking Bad 5 - LostFilm.TV [1080p]
 Peaky Blinders 6 - LostFilm.TV [1080p]
@@ -242,7 +242,7 @@ Peaky Blinders 6 - LostFilm.TV [1080p]
 
 - индивидуальные файлы **NovaFilm.TV**:
 
-```shell
+```txt
 californication.s06e08.hdtv.rus.eng.novafilm.tv.avi
 ```
 
@@ -265,14 +265,14 @@ californication.s06e08.hdtv.rus.eng.novafilm.tv.avi
 
 Корректные примеры названия фильмов:
 
-```shell
+```txt
 Blade Runner 2049 (2017).mkv
 Аватар 3D (2009).mkv
 ```
 
 Для отдельных релизеров реализована отделная обработка файлов фильмов
 
-```shell
+```txt
 All.Quiet.on.the.Western.Front.1080p.rus.LostFilm.TV.mkv
 Bullet.Train.1080p.rus.LostFilm.TV.avi
 ```
