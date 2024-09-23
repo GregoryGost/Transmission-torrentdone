@@ -43,7 +43,7 @@ class Torrentdone {
   /**
    * Config instance object
    */
-  private readonly config: Config;
+  private readonly _config: Config;
   /**
    * Logger instance object
    */
@@ -125,7 +125,7 @@ class Torrentdone {
   private readonly regexThreeD = /[.(_\-\s](3D)[.(_\-\s]?/i;
 
   constructor(root_path?: string) {
-    this.config = new Config(root_path);
+    this._config = new Config(root_path);
     this._logger = new ServerLogger(root_path).logger;
     this.connect = this.connectCommandCreate();
     this.TR_APP_VERSION = this.config.trAppVersion;
@@ -143,6 +143,14 @@ class Torrentdone {
   }
 
   /**
+   * Get Config instance object
+   * @returns {Config} nconf instance object
+   */
+  get config(): Config {
+    return this._config;
+  }
+
+  /**
    * Get logger instance object
    * @returns {Logger} log4js logger instance object
    */
@@ -153,7 +161,7 @@ class Torrentdone {
   /**
    * Basic constructor for creating a command to connect to a transmission-remote.
    * Example: `transmission-remote 127.0.0.1:9091 -n login:password`
-   * @returns connect command
+   * @returns {string} connect command
    */
   private connectCommandCreate(): string {
     return `transmission-remote ${this.config.ipAddress}:${this.config.port} --auth ${this.config.trLogin}:${this.config.trPass}`;
@@ -164,8 +172,8 @@ class Torrentdone {
    * MAN: https://www.mankier.com/1/transmission-remote
    * Example: Remove torrent 1 and 2, and also delete local data for torrent 2
    * `transmission-remote hostname -t 1 --remove -t 2 --remove-and-delete`
-   * @param saving_path - saved path media file
-   * @returns - command
+   * @param {string} saving_path saved path media file
+   * @returns {string} command
    */
   private moveCommandCreate(saving_path: string): string {
     return `${this.connect} --torrent ${this.TR_TORRENT_ID} --move "${saving_path}"`;
@@ -180,9 +188,8 @@ class Torrentdone {
    * Example Film:
    * - Blade Runner (2019).mkv
    * - Avatar 3D (2009).mkv
-   * @param file_name - Torrent file name only
-   * @param file_path - Torrent file full path
-   * @returns (boolean | undefined) - true: file is Serial, false: file is Film / undefined - not Serial, not Film
+   * @param {string} file_name Torrent file name only
+   * @param {string} file_path Torrent file full path
    */
   private async checkSerialOrFilm(file_name: string, file_path: string): Promise<void> {
     try {
@@ -213,8 +220,8 @@ class Torrentdone {
 
   /**
    * Check torrent file is Serial or a Film for LostFilm individual
-   * @param file_name - Torrent file name only
-   * @param file_path - Torrent file full path
+   * @param {string} file_name Torrent file name only
+   * @param {string} file_path Torrent file full path
    */
   private async checkSerialOrFilm_Lostfilm(file_name: string, file_path: string): Promise<void> {
     try {
@@ -245,8 +252,8 @@ class Torrentdone {
 
   /**
    * Check torrent file is Serial or a Film for NovaFilm individual
-   * @param file_name - Torrent file name only
-   * @param file_path - Torrent file full path
+   * @param {string} file_name Torrent file name only
+   * @param {string} file_path Torrent file full path
    */
   private async checkSerialOrFilm_Novafilm(file_name: string, file_path: string): Promise<void> {
     try {
@@ -279,8 +286,8 @@ class Torrentdone {
   /**
    * Extract data for serials
    * /mnt/data/media/serials/$SERIALNAME/Season $SEASON/
-   * @param file_name - File name
-   * @returns - serial data
+   * @param {string} file_name File name
+   * @returns {SerialDataI} serial data json type object
    */
   private extractSerialData(file_name: string): SerialDataI {
     this._logger.debug(`Extract serial data on regex: "${this.regexNameSeason}" from file "${file_name}"`);
@@ -305,8 +312,8 @@ class Torrentdone {
    * Extract data for films download
    * /mnt/data/media/films/2D/$YEAR/
    * /mnt/data/media/films/3D/$YEAR/
-   * @param file_name - File name
-   * @returns - film data
+   * @param {string} file_name File name
+   * @returns {FilmDataI} film data json type object
    */
   private extractFilmData(file_name: string): FilmDataI {
     const regexExec = this.regexNameYear.exec(file_name);
@@ -333,8 +340,8 @@ class Torrentdone {
    * Example file: All.Quiet.on.the.Western.Front.1080p.rus.LostFilm.TV.mkv
    * Example file: Bullet.Train.1080p.rus.LostFilm.TV.avi
    * /mnt/data/media/films/2D/$YEAR/
-   * @param file_name - File name
-   * @returns - film data
+   * @param {string} file_name File name
+   * @returns {FilmDataI} film data json type object
    */
   private extractFilmData_Lostfilm(file_name: string): FilmDataI {
     const regexExec = this.regexNameYearLostfilm.exec(file_name);
@@ -353,7 +360,7 @@ class Torrentdone {
 
   /**
    * Create the missing folders for saving torrent file
-   * @param saving_path - check full saving path
+   * @param {string} saving_path check full saving path
    */
   private async savingPathPrepare(saving_path: string): Promise<void> {
     try {
@@ -387,8 +394,9 @@ class Torrentdone {
    *       /Season 01
    * ```
    *
-   * @param file_name - Torrent file name only
-   * @param file_path - Torrent file full path
+   * @param {string} file_name Torrent file name only
+   * @param {string} file_path Torrent file full path
+   * @param {SerialDataI} serial_data Serial data json type object
    */
   private async serialProcess(file_name: string, file_path: string, serial_data: SerialDataI): Promise<void> {
     try {
@@ -441,8 +449,9 @@ class Torrentdone {
    *    Avatar (2009).mkv
    * ```
    *
-   * @param file_name - Torrent file name only
-   * @param file_path - Torrent file full path
+   * @param {string} file_name Torrent file name only
+   * @param {string} file_path Torrent file full path
+   * @param {FilmDataI} film_data Film data json type object
    */
   private async filmProcess(file_name: string, file_path: string, film_data: FilmDataI): Promise<void> {
     try {
@@ -474,9 +483,9 @@ class Torrentdone {
 
   /**
    * Final file copy. Applies to a directory.
-   * @param file_name - Torrent file name only
-   * @param file_path - Torrent file full path
-   * @param saving_path - Target saving path (final dir!)
+   * @param {string} file_name Torrent file name only
+   * @param {string} file_path Torrent file full path
+   * @param {string} saving_path Target saving path (final dir!)
    */
   private async copyFile(file_name: string, file_path: string, saving_path: string): Promise<void> {
     try {
@@ -498,9 +507,9 @@ class Torrentdone {
   /**
    * Performing a file move.
    * Moving a file is done by the standard transmission command i.e. giveaway will continue from the new placement.
-   * @param move_command - Prepared shell command for transmission-remote
-   * @param file_name - Base name of the file being moved
-   * @param saving_path - Full path to move the file
+   * @param {string} move_command Prepared shell command for transmission-remote
+   * @param {string} file_name Base name of the file being moved
+   * @param {string} saving_path Full path to move the file
    */
   private async transmissionMoveFile(move_command: string, file_name: string, saving_path: string): Promise<void> {
     try {
@@ -562,8 +571,8 @@ class Torrentdone {
   /**
    * Check Releaser for torrent file
    * LostFilm, NovaFilm, etc
-   * @param file_name - Torrent file name only
-   * @param file_path - Torrent file full path
+   * @param {string} file_name Torrent file name only
+   * @param {string} file_path Torrent file full path
    */
   private async checkReleaser(file_name: string, file_path: string): Promise<void> {
     try {
@@ -598,7 +607,7 @@ class Torrentdone {
   /**
    * If torrent Directory, foreach files and check only media file
    * mkv, avi, mp4
-   * @param dir - Directory path
+   * @param {string} dir Directory path
    */
   private async directoryForeach(dir: string): Promise<void> {
     try {
@@ -617,7 +626,7 @@ class Torrentdone {
 
   /**
    * Check torrent is File or is Directory or Unknown type
-   * @param element_path - torrent path
+   * @param {string} element_path Torrent path
    */
   private async checkFileOrDirectory(element_path: string): Promise<void> {
     try {
@@ -682,8 +691,8 @@ class Torrentdone {
 
   /**
    * Execution connect command to a transmission-remote.
-   * @param command - Command to a connect
-   * @returns Execution result
+   * @param {string} command Command to a connect
+   * @returns {string} Execution result
    */
   private async command(command: string): Promise<string> {
     try {
@@ -696,8 +705,9 @@ class Torrentdone {
 
   /**
    * Check torrent is file or directory
-   * @param {string} path - torrent path
-   * @returns {IsFileOrDirectoryT} (FILE | DIR | undefined) - true: torrent is File, false: torrent is Directory / undefined - not File, not Directory
+   * @param {string} path Torrent path
+   * @returns {IsFileOrDirectoryT} (FILE | DIR | undefined) - true: torrent is File, false:
+   *  torrent is Directory / undefined - not File, not Directory
    */
   private async isFileOrDirectoryOrUnknown(path: string): Promise<IsFileOrDirectoryT> {
     try {
@@ -721,8 +731,8 @@ class Torrentdone {
    * [Static]
    * Utility function. Capitalize first char in text
    * Example: paradox => Paradox
-   * @param text - string
-   * @returns - capitalized string
+   * @param {string} text Any string
+   * @returns {string} Capitalized any string
    */
   private static capitalize(text: string): string {
     return text[0].toUpperCase() + text.slice(1);

@@ -9,13 +9,13 @@ import nconf from 'nconf';
  */
 class Config {
   /**
-   * Path to root application dir
-   */
-  private readonly _rootPath: string;
-  /**
    * Nconf implements
    */
   private readonly nconf: typeof nconf = nconf;
+  /**
+   * Path to root application dir
+   */
+  private readonly _rootPath: string;
   /**
    * Development mode status
    * if development = true
@@ -124,22 +124,22 @@ class Config {
    */
   private readonly _trTorrentTrackers: string;
 
-  private maxWhileCount = 10;
+  private _maxWhileCount = 10;
 
   constructor(root_path?: string) {
-    this._rootPath = root_path ?? this.getRootDir();
+    this._rootPath = root_path ?? Config.getRootDir(this.maxWhileCount);
     this.init();
     this._trLogin = this.getParam('login');
     this._trPass = this.getParam('password');
     this._devmode = this.getParam('node_env') === 'development';
-    this._logLevel = this._devmode ? 'trace' : this.getParam('log_level');
+    this._logLevel = this.devmode ? 'trace' : this.getParam('log_level');
     this._dateFormat = this.getParam('date_format');
     this._logFilePath = this.getParam('log_file_path');
     // Application parameters
     this._ipAddress = this.getParam('ip_address');
     this._port = Number(this.getParam('tcp_port'));
     this._allowedMediaExtensions = Config.extensionsRegexTemplate(this.getParam('allowed_media_extensions'));
-    this._mediaPath = this._devmode ? normalize(`${this._rootPath}/mnt/data/media`) : this.getParam('media_path');
+    this._mediaPath = this.devmode ? normalize(`${this.rootPath}/mnt/data/media`) : this.getParam('media_path');
     this._serialsRootDir = this.getParam('serials_root_dir');
     this._filmsRootDir = this.getParam('films_root_dir');
     // Transmission Environment
@@ -242,11 +242,15 @@ class Config {
     return this._trTorrentTrackers;
   }
 
+  get maxWhileCount(): number {
+    return this._maxWhileCount;
+  }
+
   private init(): void {
-    const configFile: string = normalize(`${this._rootPath}/config.json`);
+    const configFile: string = normalize(`${this.rootPath}/config.json`);
     this.nconf.env();
     this.nconf.file('config', configFile);
-    this.nconf.file('package', normalize(`${this._rootPath}/package.json`));
+    this.nconf.file('package', normalize(`${this.rootPath}/package.json`));
     this.nconf.defaults({
       node_env: 'production',
       media_path: '/mnt/data/media',
@@ -325,14 +329,13 @@ class Config {
    * Determining the Project Root Path
    * @returns {string} application root path
    */
-  private getRootDir(): string {
+  private static getRootDir(max_while_count: number): string {
     const filename: string = fileURLToPath(pathToFileURL(__filename).toString());
     const dir = dirname(filename);
     let currentDir: string = dir;
     while (!existsSync(join(currentDir, 'package.json'))) {
-      if (this.maxWhileCount === 0)
-        throw new Error(`The number of attempts to search for the root directory has expired.`);
-      this.maxWhileCount--;
+      if (max_while_count === 0) throw new Error(`The number of attempts to search for the root directory has expired`);
+      max_while_count--;
       currentDir = join(currentDir, '..');
     }
     return normalize(currentDir);

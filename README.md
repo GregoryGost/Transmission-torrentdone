@@ -39,10 +39,10 @@
 ## Описание
 
 Основной кодовой базой является программная платформа [Node.js](https://nodejs.org/) основанная на движке
-[V8](https://v8.dev/)
+[V8](https://v8.dev/) который был разработан в компании Google.
 
 Данное приложение выполняется после завершения скачивания каждого торрента в сервисе Transmission daemon  
-Для его работы он должен быть настроен в файле конфигурации `settings.json` через параметры
+Для его работы он должен быть настроен в файле конфигурации Transmission `settings.json` через параметры
 `script-torrent-done-enabled` и `script-torrent-done-filename`
 
 ```json
@@ -89,8 +89,8 @@
 - v0.0.1 - (17.04.2018) Исправлены условия определяющие корректно ли перемещен файл
 - NV - (17.04.2018) Первая версия
 
-Перед стартом, transmission генерирует переменные в Environment:  
-Для версии 3.00
+Перед стартом скрипта, transmission генерирует переменные в Environment:  
+Для версии 3.00 набор такой
 
 - TR_APP_VERSION: версия Transmission
 - TR_TORRENT_ID: идентификатор (ID) торрента
@@ -105,18 +105,19 @@
 - TR_TORRENT_BYTES_DOWNLOADED: размер загруженных данных в байтах
 - TR_TORRENT_TRACKERS: список URL анонсированных трекеров
 
-## Установка
+## Установка скрипта
 
-Нужно поставить Node.js и менеджер пакетов PNPM  
-Команды для Proxmox LXC Debian под root
+Нужно поставить **Node.js**, скачать исполняемый файл скрипта и создать для него конфигурацию.
+
+Команды для Proxmox LXC Debian под root:
 
 ```shell
 apt update && apt upgrade -y && apt install -y curl wget
 ```
 
-Ставим Node.js  
+Ставим **Node.js**  
 Пойти в <https://github.com/nodesource/distributions/blob/master/README.md>  
-Выбрать LTS версию не ниже 20
+Выбрать LTS версию
 
 ```shell
 curl -fsSL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh
@@ -127,7 +128,7 @@ v20.17.0
 ```
 
 Далее создаем папку под приложение, делаем файл исполняемым. Создаем фейковый файл `package.json` (нужно для корректного
-определения корневой дирректории)
+определения корневой дирректории и нахождения файла конфигурации)
 
 ```shell
 mkdir /opt/torrentdone
@@ -137,9 +138,9 @@ chmod +x index.js
 echo '{"version":"3.1.1"}' > package.json
 ```
 
-### Конфигурирование
+### Конфигурирование скрипта
 
-Создаем файл настроек и задаем свои параметры
+Создаем файл настроек и указываем свои параметры
 
 ```shell
 nano /opt/torrentdone/config.json
@@ -182,9 +183,10 @@ chown -R debian-transmission:debian-transmission /opt/torrentdone
 
 Настройки будут считываться при каждом запуске скрипта по окончании процесса скачивания торрента.
 
-## Обновление
+## Обновление скрипта
 
-Стоит обновить Node.js если скрипт поддерживает её. Как пример обновление на 20 LTS версию.
+Стоит обновить Node.js если скрипт поддерживает новую версию (отражено в файле `package.json` в репозитории). Как пример
+обновление на 20 LTS версию.
 
 ```shell
 curl -fsSL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh

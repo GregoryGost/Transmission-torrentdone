@@ -9,37 +9,39 @@ import type { ServerLoggerConfiguration } from '../types';
  */
 class ServerLogger {
   /**
-   * Log4js module
-   */
-  private readonly _log4js: typeof log4js;
-  /**
    * Config instance object
    */
   private readonly _config: Config;
+  /**
+   * Log4js module
+   */
+  private readonly _log4js: typeof log4js;
   /**
    * Logger object
    */
   private readonly _logger: Logger;
 
   constructor(root_path?: string) {
-    this._log4js = log4js;
     this._config = new Config(root_path);
+    this._log4js = log4js;
     this.init();
     this._logger = this._log4js.getLogger();
   }
 
   /**
-   * Get Logger
-   */
-  get logger(): Logger {
-    return this._logger;
-  }
-
-  /**
-   * Get Config
+   * Get Config instance object
+   * @returns {Config} nconf instance object
    */
   get config(): Config {
     return this._config;
+  }
+
+  /**
+   * Get logger instance object
+   * @returns {Logger} log4js logger instance object
+   */
+  get logger(): Logger {
+    return this._logger;
   }
 
   /**
@@ -52,25 +54,25 @@ class ServerLogger {
           type: 'console',
           layout: {
             type: 'pattern',
-            pattern: `[%d{${this._config.dateFormat}}] : %[[%p]%] : %m`
+            pattern: `[%d{${this.config.dateFormat}}] : %[[%p]%] : %m`
           }
         },
         logFile: {
           type: 'file',
-          filename: this._config.logFilePath,
+          filename: this.config.logFilePath,
           maxLogSize: '10M',
           compress: true,
           layout: {
             type: 'pattern',
-            pattern: `[%d{${this._config.dateFormat}}] : [%p] : %m`
+            pattern: `[%d{${this.config.dateFormat}}] : [%p] : %m`
           }
         }
       },
       categories: {
         default: {
-          appenders: this._config.devmode ? ['console'] : ['console', 'logFile'],
-          level: this._config.logLevel,
-          enableCallStack: this._config.devmode ? true : false
+          appenders: this.config.devmode ? ['console'] : ['console', 'logFile'],
+          level: this.config.logLevel,
+          enableCallStack: this.config.devmode ? true : false
         }
       }
     };
