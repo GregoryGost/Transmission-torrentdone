@@ -52,7 +52,7 @@ class Torrentdone {
    * Connect commant for transmission-remote.
    * Example: transmission-remote 127.0.0.1:9091 -n login:password
    */
-  private readonly connect: string;
+  private readonly _connect: string;
   /**
    * Transmission-daemon version.
    * Example: `3.00`
@@ -89,11 +89,14 @@ class Torrentdone {
   readonly TR_TORRENT_LABELS: string;
   /**
    * ONLY FOR TRANSMISSION >= 4.0.0.
+   * * Doc: https://github.com/transmission/transmission/blob/4.0.6/docs/Scripts.md
    * Number of bytes that were downloaded for this torrent.
    * Example: `123456789` ???
    */
   readonly TR_TORRENT_BYTES_DOWNLOADED: number | undefined;
   /**
+   * ONLY FOR TRANSMISSION >= 4.0.0.
+   * * Doc: https://github.com/transmission/transmission/blob/4.0.6/docs/Scripts.md
    * A comma-delimited list of the torrent's trackers' announce URLs.
    * Example: `https://foo.com,https://bar.org,https://baz.com` ???
    */
@@ -114,20 +117,22 @@ class Torrentdone {
   /**
    * Regular Expressions for serial/tvshow definition
    */
-  private readonly regexSerial_Base: RegExp = /(serial|season|[sS][0-9]{2}[._-]{0,1}[eE][0-9]{2})/i;
+  private readonly regexSerial_Base: RegExp = /(serial|season|s\d{2}[._-]{0,1}e\d{2})/i;
   private readonly regexFilm_Base: RegExp = /[.(_\-\s](19|20)[0-9]{2}[.)_\-\s]/i;
-  private readonly regexSerial_Lostfilm: RegExp = /(s[0-9]{2}e[0-9]{2}).+(lostfilm\.tv)/i;
-  private readonly regexNameYearLostfilm = /^(.+).+(1080|720).+(lostfilm).+$/i;
-  private readonly regexSerial_Novafilm: RegExp = /(s[0-9]{2}e[0-9]{2}).+(novafilm\.tv)/i;
-  private readonly regexFilm_Releaser: RegExp = /^((?!s[0-9]{2}e[0-9]{2}).)*$/i;
   private readonly regexNameSeason: RegExp = /(.+)\.?([sS]([0-9]{2}))/i;
   private readonly regexNameYear: RegExp = /^(.+)\s{0,1}([.(_\-\s]((19|20)[0-9]{2})[.)_\-\s]).+$/i;
   private readonly regexThreeD = /[.(_\-\s](3D)[.(_\-\s]?/i;
+  // Releaser Lostfilm
+  private readonly regexSerial_Lostfilm: RegExp = /(s\d{2}e\d{2}).+(lostfilm)/i;
+  private readonly regexFilm_Lostfilm: RegExp = /^(.+).+(1080|720).+(lostfilm).+$/i;
+  // Releaser Novafilm
+  private readonly regexSerial_Novafilm: RegExp = /(s\d{2}e\d{2}).+(novafilm)/i;
+  private readonly regexFilm_Novafilm: RegExp = /^(?!.*s\d{2}e\d{2})(?=.*novafilm).*$/i;
 
   constructor(root_path?: string) {
     this._config = new Config(root_path);
     this._logger = new ServerLogger(root_path).logger;
-    this.connect = this.connectCommandCreate();
+    this._connect = this.connectCommandCreate();
     this.TR_APP_VERSION = this.config.trAppVersion;
     this.TR_TORRENT_ID = this.config.trTorrentId;
     this.TR_TORRENT_NAME = this.config.trTorrentName;
@@ -140,6 +145,14 @@ class Torrentdone {
     this.DIR_FLAG = false;
     this.DIR_NAME = undefined;
     this.RELEASER = undefined;
+  }
+
+  /**
+   * Get command transmission connect
+   * @returns {string} transmission connect command
+   */
+  get connect(): string {
+    return this._connect;
   }
 
   /**
@@ -193,27 +206,27 @@ class Torrentdone {
    */
   private async checkSerialOrFilm(file_name: string, file_path: string): Promise<void> {
     try {
-      this._logger.debug(`RELEASER: ${this.RELEASER}`);
-      this._logger.debug(`Base processing`);
-      this._logger.debug(`Check Serial or Film: "${file_name}"`);
+      this.logger.debug(`RELEASER: ${this.RELEASER}`);
+      this.logger.debug(`Base processing`);
+      this.logger.debug(`Check Serial or Film: "${file_name}"`);
       if (this.regexSerial_Base.test(file_name)) {
         // Is Serial
-        this._logger.info(`File "${file_name}" is a SERIAL`);
-        this._logger.debug(`File check is regex: "${this.regexSerial_Base}"`);
+        this.logger.info(`File "${file_name}" is a SERIAL`);
+        this.logger.debug(`File check is regex: "${this.regexSerial_Base}"`);
         const serialData: SerialDataI = this.extractSerialData(file_name);
         await this.serialProcess(file_name, file_path, serialData);
       } else if (this.regexFilm_Base.test(file_name)) {
         // Is Film
-        this._logger.info(`File "${file_name}" is a FILM`);
-        this._logger.debug(`File check is regex: "${this.regexFilm_Base}"`);
+        this.logger.info(`File "${file_name}" is a FILM`);
+        this.logger.debug(`File check is regex: "${this.regexFilm_Base}"`);
         const filmData: FilmDataI = this.extractFilmData(file_name);
         await this.filmProcess(file_name, file_path, filmData);
       } else {
         // Is not Serial and Film
-        this._logger.info(`File "${file_name}" is not Serial or Film. NO ACTION`);
+        this.logger.info(`File "${file_name}" is not Serial or Film. NO ACTION`);
       }
     } catch (error: unknown) {
-      this._logger.trace(error);
+      this.logger.trace(error);
       throw error;
     }
   }
@@ -225,27 +238,27 @@ class Torrentdone {
    */
   private async checkSerialOrFilm_Lostfilm(file_name: string, file_path: string): Promise<void> {
     try {
-      this._logger.debug(`RELEASER: ${this.RELEASER}`);
-      this._logger.debug(`Check Serial or Film: "${file_name}"`);
+      this.logger.debug(`RELEASER: ${this.RELEASER}`);
+      this.logger.debug(`Check Serial or Film: "${file_name}"`);
       if (this.regexSerial_Lostfilm.test(file_name)) {
         // Is Serial
-        this._logger.info(`File "${file_name}" is a SERIAL`);
-        this._logger.debug(`File check is regex: "${this.regexSerial_Lostfilm}"`);
+        this.logger.info(`File "${file_name}" is a SERIAL`);
+        this.logger.debug(`File check is regex: "${this.regexSerial_Lostfilm}"`);
         // Basic Serial Data
         const serialData: SerialDataI = this.extractSerialData(file_name);
         await this.serialProcess(file_name, file_path, serialData);
-      } else if (this.regexFilm_Releaser.test(file_name)) {
+      } else if (this.regexFilm_Lostfilm.test(file_name)) {
         // Is Film
-        this._logger.info(`File "${file_name}" is a FILM`);
-        this._logger.debug(`File check is regex: "${this.regexFilm_Releaser}"`);
+        this.logger.info(`File "${file_name}" is a FILM`);
+        this.logger.debug(`File check is regex: "${this.regexFilm_Lostfilm}"`);
         const filmData: FilmDataI = this.extractFilmData_Lostfilm(file_name);
         await this.filmProcess(file_name, file_path, filmData);
       } else {
         // Is not Serial and Film, but is Lostfilm
-        this._logger.info(`File "${file_name}" is not Serial or Film. NO ACTION`);
+        this.logger.info(`File "${file_name}" is not Lostfilm Serial or Lostfilm Film. NO ACTION`);
       }
     } catch (error: unknown) {
-      this._logger.trace(error);
+      this.logger.trace(error);
       throw error;
     }
   }
@@ -257,28 +270,27 @@ class Torrentdone {
    */
   private async checkSerialOrFilm_Novafilm(file_name: string, file_path: string): Promise<void> {
     try {
-      this._logger.debug(`RELEASER: ${this.RELEASER}`);
-      this._logger.debug(`Check Serial or Film: "${file_name}"`);
+      this.logger.debug(`RELEASER: ${this.RELEASER}`);
+      this.logger.debug(`Check Serial or Film: "${file_name}"`);
       if (this.regexSerial_Novafilm.test(file_name)) {
         // Is Serial
-        this._logger.info(`File "${file_name}" is a SERIAL`);
-        this._logger.debug(`File check is regex: "${this.regexSerial_Novafilm}"`);
+        this.logger.info(`File "${file_name}" is a SERIAL`);
+        this.logger.debug(`File check is regex: "${this.regexSerial_Novafilm}"`);
         // Basic Serial Data
         const serialData: SerialDataI = this.extractSerialData(file_name);
         await this.serialProcess(file_name, file_path, serialData);
-      } else if (this.regexFilm_Releaser.test(file_name)) {
+      } else if (this.regexFilm_Novafilm.test(file_name)) {
         // Is Film
-        this._logger.info(`File "${file_name}" is a FILM`);
-        this._logger.debug(`File check is regex: "${this.regexFilm_Releaser}"`);
+        this.logger.info(`File "${file_name}" is a FILM`);
+        this.logger.debug(`File check is regex: "${this.regexFilm_Novafilm}"`);
         // Basic Film Data
         const filmData: FilmDataI = this.extractFilmData(file_name);
         await this.filmProcess(file_name, file_path, filmData);
-      } else {
-        // Is not Serial and Film, but is Lostfilm
-        this._logger.info(`File "${file_name}" is not Serial or Film. NO ACTION`);
       }
+      // films of this releaser (NovaFilm) are very rare
+      // there is no need to output the log
     } catch (error: unknown) {
-      this._logger.trace(error);
+      this.logger.trace(error);
       throw error;
     }
   }
@@ -290,11 +302,14 @@ class Torrentdone {
    * @returns {SerialDataI} serial data json type object
    */
   private extractSerialData(file_name: string): SerialDataI {
-    this._logger.debug(`Extract serial data on regex: "${this.regexNameSeason}" from file "${file_name}"`);
+    this.logger.debug(`Extract serial data on regex: "${this.regexNameSeason}" from file "${file_name}"`);
     const regexExec: RegExpExecArray | null = this.regexNameSeason.exec(file_name);
     if (regexExec === null) throw new Error(`No data extracted for file "${file_name}"`);
-    // const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s|\_)/g, ' ');
-    const name: string = Torrentdone.capitalize(regexExec[1]).trim().replace(/^\./g, '').replace(/\.$/g, '');
+    const name: string = Torrentdone.capitalize(regexExec[1])
+      .trim()
+      .replace(/^\./g, '')
+      .replace(/\.$/g, '')
+      .replace(/\s+/g, ' ');
     const dirName: string = name.replace(/(\.|\s|_)/g, ' ');
     const season = `Season ${regexExec[3]}`;
     const data: SerialDataI = {
@@ -302,7 +317,7 @@ class Torrentdone {
       dirName,
       season
     };
-    this._logger.debug(
+    this.logger.debug(
       `Extracted data (${this.RELEASER}): name="${data.name}" dirName="${data.dirName}" season="${data.season}"`
     );
     return data;
@@ -319,17 +334,21 @@ class Torrentdone {
     const regexExec = this.regexNameYear.exec(file_name);
     if (regexExec === null) throw new Error(`No data extracted for file "${file_name}"`);
     // const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s|\_)/g, ' ');
-    const name: string = Torrentdone.capitalize(regexExec[1]).trim();
+    const name: string = Torrentdone.capitalize(regexExec[1])
+      .trim()
+      .replace(/^\./g, '')
+      .replace(/\.$/g, '')
+      .replace(/\s+/g, ' ');
     const year = regexExec[3];
     const data: FilmDataI = {
       name,
       year,
       three_d: this.regexThreeD.test(name)
     };
-    this._logger.debug(
+    this.logger.debug(
       `Extracted data (${this.RELEASER}): name="${data.name}" year="${data.year}" three_d="${data.three_d}"`
     );
-    this._logger.debug(`Extracted film data regex: "${this.regexNameYear}"`);
+    this.logger.debug(`Extracted film data regex: "${this.regexNameYear}"`);
     return data;
   }
 
@@ -344,17 +363,20 @@ class Torrentdone {
    * @returns {FilmDataI} film data json type object
    */
   private extractFilmData_Lostfilm(file_name: string): FilmDataI {
-    const regexExec = this.regexNameYearLostfilm.exec(file_name);
+    const regexExec = this.regexFilm_Lostfilm.exec(file_name);
     if (regexExec === null) throw new Error(`No data extracted for file "${file_name}"`);
-    // const name: string = Torrentdone.capitalize(regexExec[1]).replace(/(\.|\s|\_)/g, ' ');
-    const name: string = Torrentdone.capitalize(regexExec[1]);
+    const name: string = Torrentdone.capitalize(regexExec[1])
+      .trim()
+      .replace(/^\./g, '')
+      .replace(/\.$/g, '')
+      .replace(/\s+/g, ' ');
     const year = new Date().getFullYear().toString();
     const data: FilmDataI = {
       name,
       year,
       three_d: false
     };
-    this._logger.debug(`Extracted data (${this.RELEASER}): name="${data.name}" year="${data.year}" only 2D`);
+    this.logger.debug(`Extracted data (${this.RELEASER}): name="${data.name}" year="${data.year}" only 2D`);
     return data;
   }
 
@@ -366,18 +388,18 @@ class Torrentdone {
     try {
       // Exists path ?
       if (existsSync(saving_path)) {
-        this._logger.debug(`Saving path is exists`);
+        this.logger.debug(`Saving path is exists`);
       } else {
-        this._logger.debug(`Saving path does not exist. Create the missing folders.`);
+        this.logger.debug(`Saving path does not exist. Create the missing folders.`);
         mkdirSync(saving_path, { recursive: true });
         if (!existsSync(saving_path)) {
           throw new Error('Saving path is can not be created');
         } else {
-          this._logger.debug(`Saving path directories is created`);
+          this.logger.debug(`Saving path directories is created`);
         }
       }
     } catch (error: unknown) {
-      this._logger.trace(error);
+      this.logger.trace(error);
       throw error;
     }
   }
@@ -400,28 +422,28 @@ class Torrentdone {
    */
   private async serialProcess(file_name: string, file_path: string, serial_data: SerialDataI): Promise<void> {
     try {
-      this._logger.debug(`Processing serial file: "${file_name}"`);
+      this.logger.debug(`Processing serial file: "${file_name}"`);
       // Extracting individual data for the releaser (LostFilm, NovaFilm, etc)
       // Preparing the save directory
       const savingPath: string = normalize(
         `${this.config.mediaPath}/${this.config.serialsRootDir}/${serial_data.dirName}/${serial_data.season}`
       );
-      this._logger.debug(`Saving path: "${savingPath}"`);
+      this.logger.debug(`Saving path: "${savingPath}"`);
       await this.savingPathPrepare(savingPath);
       // Move if file / Copy if file into directory
       if (this.DIR_FLAG) {
         // Copy
-        this._logger.info(`COPY file "${file_name}" to saving path "${savingPath}"`);
+        this.logger.info(`COPY file "${file_name}" to saving path "${savingPath}"`);
         await this.copyFile(file_name, file_path, savingPath);
       } else {
         // Move
-        this._logger.info(`MOVE file "${file_name}" to saving path "${savingPath}"`);
+        this.logger.info(`MOVE file "${file_name}" to saving path "${savingPath}"`);
         const moveCommand: string = this.moveCommandCreate(savingPath);
-        this._logger.debug(`Move command: "${moveCommand}"`);
+        this.logger.debug(`Move command: "${moveCommand}"`);
         await this.transmissionMoveFile(moveCommand, file_name, savingPath);
       }
     } catch (error: unknown) {
-      this._logger.trace(error);
+      this.logger.trace(error);
       throw error;
     }
   }
@@ -455,28 +477,28 @@ class Torrentdone {
    */
   private async filmProcess(file_name: string, file_path: string, film_data: FilmDataI): Promise<void> {
     try {
-      this._logger.debug(`Processing film file: "${file_name}"`);
+      this.logger.debug(`Processing film file: "${file_name}"`);
       // Preparing the save directory
       let savingPath: string = this.config.mediaPath;
       if (film_data.three_d) savingPath += `/${this.config.filmsRootDir}/3D/${film_data.year}`;
       else savingPath += `/${this.config.filmsRootDir}/2D/${film_data.year}`;
       savingPath = normalize(savingPath);
-      this._logger.debug(`Saving path: "${savingPath}"`);
+      this.logger.debug(`Saving path: "${savingPath}"`);
       await this.savingPathPrepare(savingPath);
       // Move if file / Copy if file into directory
       if (this.DIR_FLAG) {
         // Copy
-        this._logger.info(`COPY file "${file_name}" to saving path "${savingPath}"`);
+        this.logger.info(`COPY file "${file_name}" to saving path "${savingPath}"`);
         await this.copyFile(file_name, file_path, savingPath);
       } else {
         // Move
-        this._logger.info(`MOVE file "${file_name}" to saving path "${savingPath}"`);
+        this.logger.info(`MOVE file "${file_name}" to saving path "${savingPath}"`);
         const moveCommand: string = this.moveCommandCreate(savingPath);
-        this._logger.debug(`Move command: "${moveCommand}"`);
+        this.logger.debug(`Move command: "${moveCommand}"`);
         await this.transmissionMoveFile(moveCommand, file_name, savingPath);
       }
     } catch (error: unknown) {
-      this._logger.trace(error);
+      this.logger.trace(error);
       throw error;
     }
   }
@@ -489,17 +511,17 @@ class Torrentdone {
    */
   private async copyFile(file_name: string, file_path: string, saving_path: string): Promise<void> {
     try {
-      this._logger.debug(`Start copying file...`);
+      this.logger.debug(`Start copying file...`);
       const finalPath: string = normalize(`${saving_path}/${file_name}`);
       copyFileSync(file_path, finalPath);
       if (!existsSync(finalPath)) {
         throw new Error(`Error. Failed to copy file "${file_name}"`);
       } else {
-        this._logger.info(`File "${file_name}" copied successfully. => END`);
-        this._logger.debug(`File final path: "${finalPath}"`);
+        this.logger.info(`File "${file_name}" copied successfully. => END`);
+        this.logger.debug(`File final path: "${finalPath}"`);
       }
     } catch (error: unknown) {
-      this._logger.trace(error);
+      this.logger.trace(error);
       throw error;
     }
   }
@@ -513,24 +535,24 @@ class Torrentdone {
    */
   private async transmissionMoveFile(move_command: string, file_name: string, saving_path: string): Promise<void> {
     try {
-      this._logger.debug(`Start moving file...`);
+      this.logger.debug(`Start moving file...`);
       const finalPath: string = normalize(`${saving_path}/${file_name}`);
       const regexSuccess = /success/i;
       let execResult: string = await this.command(move_command);
       execResult = execResult.replace(/(\r\n|\n|\r)/gm, '');
       // 127.0.0.1:9091/transmission/rpc/ responded: "success"
-      this._logger.debug(`execResult: ${execResult}`);
+      this.logger.debug(`execResult: ${execResult}`);
       if (!regexSuccess.test(execResult)) {
         throw new Error(`Failed to move file "${file_name}". Reason: Negative result of exec command: ${execResult}`);
       }
       if (!existsSync(finalPath)) {
         throw new Error(`Failed to move file "${file_name}". Reason: file not found after move`);
       } else {
-        this._logger.info(`File "${file_name}" moving successfully. => END`);
-        this._logger.debug(`File final path: "${finalPath}"`);
+        this.logger.info(`File "${file_name}" moving successfully. => END`);
+        this.logger.debug(`File final path: "${finalPath}"`);
       }
     } catch (error: unknown) {
-      this._logger.trace(error);
+      this.logger.trace(error);
       throw error;
     }
   }
@@ -539,31 +561,31 @@ class Torrentdone {
    * Displaying information about the downloaded torrent
    */
   private startInfo(): void {
-    this._logger.info('##############################################################################################');
-    this._logger.info(`transmission-torrentdone RUN`);
-    this._logger.info(`TORRENT ID: "${this.TR_TORRENT_ID}" FINISH: START PROCESS ...`);
-    this._logger.info('==============================================================================================');
-    this._logger.info(`VER:   "Transmission version - ${this.TR_APP_VERSION}"`);
-    this._logger.info(`DIR:   "${this.TR_TORRENT_DIR}"`);
-    this._logger.info(`NAME:  "${this.TR_TORRENT_NAME}"`);
-    this._logger.info(`DTIME: "${this.TR_TIME_LOCALTIME}"`);
-    this._logger.info(`HASH:  "${this.TR_TORRENT_HASH}"`);
-    if (this.TR_TORRENT_LABELS.length > 0) this._logger.info(`LABELS:  "${this.TR_TORRENT_LABELS}"`);
+    this.logger.info('##############################################################################################');
+    this.logger.info(`transmission-torrentdone RUN`);
+    this.logger.info(`TORRENT ID: "${this.TR_TORRENT_ID}" FINISH: START PROCESS ...`);
+    this.logger.info('==============================================================================================');
+    this.logger.info(`VER:   "Transmission version - ${this.TR_APP_VERSION}"`);
+    this.logger.info(`DIR:   "${this.TR_TORRENT_DIR}"`);
+    this.logger.info(`NAME:  "${this.TR_TORRENT_NAME}"`);
+    this.logger.info(`DTIME: "${this.TR_TIME_LOCALTIME}"`);
+    this.logger.info(`HASH:  "${this.TR_TORRENT_HASH}"`);
+    if (this.TR_TORRENT_LABELS.length > 0) this.logger.info(`LABELS:  "${this.TR_TORRENT_LABELS}"`);
     if (this.TR_TORRENT_BYTES_DOWNLOADED !== undefined && this.TR_TORRENT_BYTES_DOWNLOADED > 0)
-      this._logger.info(`BYTES:  "${this.TR_TORRENT_BYTES_DOWNLOADED}"`);
+      this.logger.info(`BYTES:  "${this.TR_TORRENT_BYTES_DOWNLOADED}"`);
     if (this.TR_TORRENT_TRACKERS !== undefined && this.TR_TORRENT_TRACKERS.length > 0)
-      this._logger.info(`TRACKERS:  "${this.TR_TORRENT_TRACKERS}"`);
-    this._logger.info('==============================================================================================');
+      this.logger.info(`TRACKERS:  "${this.TR_TORRENT_TRACKERS}"`);
+    this.logger.info('==============================================================================================');
   }
 
   /**
    * Terminating delimiter output
    */
   private endInfo(error_flag = false): void {
-    this._logger.info('==============================================================================================');
-    if (error_flag) this._logger.error(`TORRENT ID: "${this.TR_TORRENT_ID}" ERROR END PROCESS`);
-    else this._logger.info(`TORRENT ID: "${this.TR_TORRENT_ID}" END PROCESS`);
-    this._logger.info(
+    this.logger.info('==============================================================================================');
+    if (error_flag) this.logger.error(`TORRENT ID: "${this.TR_TORRENT_ID}" ERROR END PROCESS`);
+    else this.logger.info(`TORRENT ID: "${this.TR_TORRENT_ID}" END PROCESS`);
+    this.logger.info(
       '##############################################################################################\n'
     );
   }
@@ -576,30 +598,30 @@ class Torrentdone {
    */
   private async checkReleaser(file_name: string, file_path: string): Promise<void> {
     try {
-      this._logger.debug(`Check Releaser for: "${file_name}"`);
+      this.logger.debug(`Check Releaser for: "${file_name}"`);
       // Releaser processing
       const lostfilm = new RegExp('lostfilm', 'i');
       const novafilm = new RegExp('novafilm', 'i');
       //
       if (lostfilm.test(file_name)) {
         // Is LostFilm file (serial or film)
-        this._logger.info(`Releaser found: "LostFilm"`);
-        this._logger.debug(`Releaser regex: "${lostfilm}"`);
+        this.logger.info(`Releaser found: "LostFilm"`);
+        this.logger.debug(`Releaser regex: "${lostfilm}"`);
         this.RELEASER = 'lostfilm';
         await this.checkSerialOrFilm_Lostfilm(file_name, file_path);
       } else if (novafilm.test(file_name)) {
         // Is NovaFilm file (serial or film)
-        this._logger.info(`Releaser found: "NovaFilm"`);
-        this._logger.debug(`Releaser regex: "${novafilm}"`);
+        this.logger.info(`Releaser found: "NovaFilm"`);
+        this.logger.debug(`Releaser regex: "${novafilm}"`);
         this.RELEASER = 'novafilm';
         await this.checkSerialOrFilm_Novafilm(file_name, file_path);
       } else {
         // No releaser base processing
-        this._logger.debug(`Releaser not found`);
+        this.logger.debug(`Releaser not found`);
         await this.checkSerialOrFilm(file_name, file_path);
       }
     } catch (error: unknown) {
-      this._logger.trace(error);
+      this.logger.trace(error);
       throw error;
     }
   }
@@ -611,15 +633,15 @@ class Torrentdone {
    */
   private async directoryForeach(dir: string): Promise<void> {
     try {
-      this._logger.info(`Directory process: "${dir}"`);
+      this.logger.info(`Directory process: "${dir}"`);
       const elementsList: string[] = readdirSync(dir);
-      this._logger.debug(`All elements in dir: "${elementsList}"`);
+      this.logger.debug(`All elements in dir: "${elementsList}"`);
       for (const element of elementsList) {
         const elementPath: string = normalize(`${this.TR_TORRENT_DIR}/${this.TR_TORRENT_NAME}/${element}`);
         await this.checkFileOrDirectory(elementPath);
       }
     } catch (error: unknown) {
-      this._logger.trace(error);
+      this.logger.trace(error);
       throw error;
     }
   }
@@ -632,43 +654,43 @@ class Torrentdone {
     try {
       // File or Dir or Unknown
       const fileOrDir: IsFileOrDirectoryT = await this.isFileOrDirectoryOrUnknown(element_path);
-      this._logger.info('================================');
+      this.logger.info('================================');
       if (fileOrDir === 'FILE') {
         // Is File
         const fileExtension: string = extname(element_path);
         const fileName: string = basename(element_path, fileExtension);
-        this._logger.info(`Element: "${fileName + fileExtension}" is a FILE`);
-        this._logger.debug(`Element: file extension: "${fileExtension}"`);
+        this.logger.info(`Element: "${fileName + fileExtension}" is a FILE`);
+        this.logger.debug(`Element: file extension: "${fileExtension}"`);
         // Only not parted files
         if (this.config.allowedMediaExtensions.test(fileExtension)) {
           // if (fileExtension === '.avi' || fileExtension === '.mp4' || fileExtension === '.mkv') {
-          this._logger.debug(`Element: full path: "${element_path}"`);
+          this.logger.debug(`Element: full path: "${element_path}"`);
           // => 1. Check Releaser
           await this.checkReleaser(fileName + fileExtension, element_path);
         } else {
-          this._logger.debug(
+          this.logger.debug(
             `Element: file extension "${fileExtension}" does not match allowed extensions regex: "${this.config.allowedMediaExtensions}"`
           );
-          this._logger.info(`Element does not match allowed extensions. NO ACTION`);
+          this.logger.info(`Element does not match allowed extensions. NO ACTION`);
         }
       } else if (fileOrDir === 'DIR') {
         // Is Directory
         this.DIR_FLAG = true;
         this.DIR_NAME = this.TR_TORRENT_NAME;
         const dirName: string = dirname(element_path);
-        this._logger.info(`Element: "${dirName}" is a DIRECTORY`);
-        this._logger.debug(`DIR_FLAG: "${this.DIR_FLAG}"`);
-        this._logger.debug(`Element: full path: "${element_path}"`);
+        this.logger.info(`Element: "${dirName}" is a DIRECTORY`);
+        this.logger.debug(`DIR_FLAG: "${this.DIR_FLAG}"`);
+        this.logger.debug(`Element: full path: "${element_path}"`);
         // FOREACH directory. Check into files.
         await this.directoryForeach(element_path);
       } else {
         // Unknown type: no next action
-        this._logger.debug(`TR_TORRENT_NAME: "${this.TR_TORRENT_NAME}" is neither a file or a directory`);
-        this._logger.debug(`Element: full path: "${element_path}"`);
-        this._logger.info(`Element is not File or Directory. NO ACTION`);
+        this.logger.debug(`TR_TORRENT_NAME: "${this.TR_TORRENT_NAME}" is neither a file or a directory`);
+        this.logger.debug(`Element: full path: "${element_path}"`);
+        this.logger.info(`Element is not File or Directory. NO ACTION`);
       }
     } catch (error: unknown) {
-      this._logger.trace(error);
+      this.logger.trace(error);
       throw error;
     }
   }
@@ -684,7 +706,7 @@ class Torrentdone {
       this.endInfo();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      this._logger.error(error.message);
+      this.logger.error(error.message);
       this.endInfo(true);
     }
   }
@@ -698,7 +720,7 @@ class Torrentdone {
     try {
       return execSync(command, { timeout: 2000, encoding: 'utf8' });
     } catch (error: unknown) {
-      this._logger.trace(error);
+      this.logger.trace(error);
       throw error;
     }
   }
@@ -722,7 +744,7 @@ class Torrentdone {
         return undefined;
       }
     } catch (error: unknown) {
-      this._logger.trace(error);
+      this.logger.trace(error);
       throw error;
     }
   }

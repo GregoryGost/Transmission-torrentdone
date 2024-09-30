@@ -5,7 +5,7 @@
  */
 import { cwd, env } from 'node:process';
 import { normalize, join } from 'node:path';
-import { rmSync, existsSync, copyFileSync, symlinkSync } from 'node:fs';
+import fs, { rmSync, existsSync, copyFileSync, symlinkSync } from 'node:fs';
 import cproc from 'node:child_process';
 import type { Level } from 'log4js';
 //
@@ -26,6 +26,10 @@ let logInfoMock: jest.SpyInstance;
 let logDebugMock: jest.SpyInstance;
 let logErrorMock: jest.SpyInstance;
 // let logTraceMock: jest.SpyInstance;
+
+// Mock node functions
+// let execSyncMock: jest.SpyInstance;
+// let readdirSyncMock: jest.SpyInstance;
 
 // Basically, logs are added to the file and target directories. Remove before testing.
 if (existsSync(logFilePath)) rmSync(logFilePath);
@@ -157,7 +161,7 @@ describe('torrentdone.ts - Serials single files', () => {
       6,
       `Check Serial or Film: "The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv"`
     );
-    expect(logDebugMock).toHaveBeenNthCalledWith(7, `File check is regex: "/(s[0-9]{2}e[0-9]{2}).+(lostfilm\\.tv)/i"`);
+    expect(logDebugMock).toHaveBeenNthCalledWith(7, `File check is regex: "/(s\\d{2}e\\d{2}).+(lostfilm)/i"`);
     expect(logDebugMock).toHaveBeenNthCalledWith(
       8,
       `Extract serial data on regex: "/(.+)\\.?([sS]([0-9]{2}))/i" from file "The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv"`
@@ -468,6 +472,66 @@ describe('torrentdone.ts - Serials single files', () => {
     await torrentdone.main();
     // log Info
     expect(logInfoMock).toHaveBeenNthCalledWith(3, `TORRENT ID: "105" FINISH: START PROCESS ...`);
+    // log Error
+    expect(logErrorMock).not.toHaveBeenCalled();
+  });
+  // 130 (Is not Serial and Film, but is Lostfilm)
+  it(`OK - 130 - The Penguin S01.rus.LostFilm.TV.mkv`, async () => {
+    env.TR_APP_VERSION = version;
+    env.TR_TORRENT_ID = '130';
+    env.TR_TORRENT_NAME = `The Penguin S01.rus.LostFilm.TV.mkv`;
+    env.TR_TORRENT_DIR = testMntDownloadsPath;
+    env.TR_TORRENT_HASH = '540d0ae0eac6cc48e485e54293b19b858db355de';
+    env.TR_TIME_LOCALTIME = 'Sat Sep  4 21:22:09 2022';
+    env.TR_TORRENT_LABELS = '';
+    env.TR_TORRENT_BYTES_DOWNLOADED = '';
+    env.TR_TORRENT_TRACKERS = '';
+    //
+    const torrentdone: Torrentdone = new Torrentdone(testRootConfigsPath);
+    //
+    logInfoMock = jest
+      .spyOn(torrentdone.logger, 'info')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    logDebugMock = jest
+      .spyOn(torrentdone.logger, 'debug')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    logErrorMock = jest
+      .spyOn(torrentdone.logger, 'error')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    jest.spyOn(torrentdone.logger, 'trace').mockImplementation();
+    //
+    jest.spyOn(cproc, 'execSync').mockImplementation(() => {
+      copyFileSync(
+        normalize(`${testMntDownloadsPath}/The Penguin S01.rus.LostFilm.TV.mkv`),
+        normalize(`${testMntDataPath}/media/TV Shows/The Penguin/Season 01/The Penguin S01.rus.LostFilm.TV.mkv`)
+      );
+      return `127.0.0.1:9091/transmission/rpc/\nresponded: "success"`;
+    });
+    //
+    expect(torrentdone.TR_APP_VERSION).toEqual(version);
+    expect(torrentdone.TR_TORRENT_ID).toEqual(130);
+    expect(torrentdone.TR_TORRENT_NAME).toEqual(`The Penguin S01.rus.LostFilm.TV.mkv`);
+    expect(torrentdone.TR_TORRENT_DIR).toEqual(testMntDownloadsPath);
+    expect(torrentdone.TR_TORRENT_HASH).toEqual('540d0ae0eac6cc48e485e54293b19b858db355de');
+    expect(torrentdone.TR_TIME_LOCALTIME).toEqual('Sat Sep  4 21:22:09 2022');
+    expect(torrentdone.TR_TORRENT_LABELS).toEqual('');
+    expect(torrentdone.TR_TORRENT_BYTES_DOWNLOADED).toEqual(0);
+    expect(torrentdone.TR_TORRENT_TRACKERS).toEqual('');
+    //
+    await torrentdone.main();
+    // log Info
+    expect(logInfoMock).toHaveBeenNthCalledWith(3, `TORRENT ID: "130" FINISH: START PROCESS ...`);
+    // File "${file_name}" is not Serial or Film. NO ACTION
+    expect(logInfoMock).toHaveBeenNthCalledWith(
+      14,
+      `File "The Penguin S01.rus.LostFilm.TV.mkv" is not Lostfilm Serial or Lostfilm Film. NO ACTION`
+    );
     // log Error
     expect(logErrorMock).not.toHaveBeenCalled();
   });
@@ -838,6 +902,68 @@ describe('torrentdone.ts - Films single files', () => {
     // log Error
     expect(logErrorMock).not.toHaveBeenCalled();
   });
+  // 114
+  it(`OK - 114 - Simple_Media_file (2009).novafilm.tv.avi`, async () => {
+    env.TR_APP_VERSION = version;
+    env.TR_TORRENT_ID = '114';
+    env.TR_TORRENT_NAME = `Simple_Media_file (2009).novafilm.tv.avi`;
+    env.TR_TORRENT_DIR = testMntDownloadsPath;
+    env.TR_TORRENT_HASH = 'e993215bfdbb515f6ea00fafc1918z549119f789';
+    env.TR_TIME_LOCALTIME = 'Fri Nov  13 17:22:09 2024';
+    env.TR_TORRENT_LABELS = '';
+    env.TR_TORRENT_BYTES_DOWNLOADED = '';
+    env.TR_TORRENT_TRACKERS = '';
+    //
+    const torrentdone: Torrentdone = new Torrentdone(testRootConfigsPath);
+    //
+    logInfoMock = jest
+      .spyOn(torrentdone.logger, 'info')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    logDebugMock = jest
+      .spyOn(torrentdone.logger, 'debug')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    logErrorMock = jest
+      .spyOn(torrentdone.logger, 'error')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    jest.spyOn(torrentdone.logger, 'trace').mockImplementation();
+    //
+    jest.spyOn(cproc, 'execSync').mockImplementation(() => {
+      copyFileSync(
+        normalize(`${testMntDownloadsPath}/Simple_Media_file (2009).novafilm.tv.avi`),
+        normalize(`${testMntDataPath}/media/Movies/2D/2009/Simple_Media_file (2009).novafilm.tv.avi`)
+      );
+      return `127.0.0.1:9091/transmission/rpc/\nresponded: "success"`;
+    });
+    //
+    expect(torrentdone.TR_APP_VERSION).toEqual(version);
+    expect(torrentdone.TR_TORRENT_ID).toEqual(114);
+    expect(torrentdone.TR_TORRENT_NAME).toEqual(`Simple_Media_file (2009).novafilm.tv.avi`);
+    expect(torrentdone.TR_TORRENT_DIR).toEqual(testMntDownloadsPath);
+    expect(torrentdone.TR_TORRENT_HASH).toEqual('e993215bfdbb515f6ea00fafc1918z549119f789');
+    expect(torrentdone.TR_TIME_LOCALTIME).toEqual('Fri Nov  13 17:22:09 2024');
+    expect(torrentdone.TR_TORRENT_LABELS).toEqual('');
+    expect(torrentdone.TR_TORRENT_BYTES_DOWNLOADED).toEqual(0);
+    expect(torrentdone.TR_TORRENT_TRACKERS).toEqual('');
+    // Run process
+    await torrentdone.main();
+    // log Debug
+    expect(logDebugMock).toHaveBeenNthCalledWith(5, `RELEASER: novafilm`);
+    expect(logDebugMock).toHaveBeenNthCalledWith(6, `Check Serial or Film: "Simple_Media_file (2009).novafilm.tv.avi"`);
+    // log Info
+    expect(logInfoMock).toHaveBeenNthCalledWith(14, `File "Simple_Media_file (2009).novafilm.tv.avi" is a FILM`);
+    expect(logInfoMock).toHaveBeenNthCalledWith(
+      16,
+      `File "Simple_Media_file (2009).novafilm.tv.avi" moving successfully. => END`
+    );
+    // log Error
+    expect(logErrorMock).not.toHaveBeenCalled();
+  });
 });
 
 describe('torrentdone.ts - Films files in directory', () => {
@@ -988,7 +1114,7 @@ describe('torrentdone.ts - Films files in directory', () => {
 // OTHER FILE
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-describe('torrentdone.ts - Simple media file', () => {
+describe('torrentdone.ts - Simple files', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -1148,5 +1274,473 @@ describe('torrentdone.ts - isFileOrDirectoryOrUnknown method', () => {
       `ENOENT: no such file or directory, lstat '${normalize(`${testMntDownloadsPath}/Simple_Media_file_error.mkv`)}'`
     );
     expect(logErrorMock).toHaveBeenNthCalledWith(2, `TORRENT ID: "115" ERROR END PROCESS`);
+  });
+});
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// PARANOID COVERAGE
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+describe('torrentdone.ts - All throw errors', () => {
+  beforeEach(() => {
+    if (existsSync(testMntDataPath)) rmSync(testMntDataPath, { recursive: true });
+    jest.clearAllMocks();
+  });
+  // Execution connect command to a transmission-remote.
+  it(`private command throw error`, async () => {
+    env.TR_APP_VERSION = version;
+    env.TR_TORRENT_ID = '100';
+    env.TR_TORRENT_NAME = `The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv`;
+    env.TR_TORRENT_DIR = testMntDownloadsPath;
+    env.TR_TORRENT_HASH = '540d0ae0eac6cc48e321e54293b19b858db355da';
+    env.TR_TIME_LOCALTIME = 'Fri Nov  4 17:22:09 2022';
+    env.TR_TORRENT_LABELS = '';
+    env.TR_TORRENT_BYTES_DOWNLOADED = '';
+    env.TR_TORRENT_TRACKERS = '';
+    //
+    const torrentdone: Torrentdone = new Torrentdone(testRootConfigsPath);
+    //
+    logInfoMock = jest.spyOn(torrentdone.logger, 'info').mockImplementation();
+    logDebugMock = jest.spyOn(torrentdone.logger, 'debug').mockImplementation();
+    jest.spyOn(torrentdone.logger, 'trace').mockImplementation();
+    logErrorMock = jest
+      .spyOn(torrentdone.logger, 'error')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    const execSyncMock = jest.spyOn(cproc, 'execSync').mockImplementation(() => {
+      throw new Error('execSync emulate error');
+    });
+    // Run process
+    await torrentdone.main();
+    // Log Error
+    expect(logErrorMock).toHaveBeenNthCalledWith(1, `execSync emulate error`);
+    expect(logErrorMock).toHaveBeenNthCalledWith(2, `TORRENT ID: "100" ERROR END PROCESS`);
+    execSyncMock.mockRestore();
+  });
+  // Foreach directory for DIR type torrent.
+  it(`directory foreach throw error`, async () => {
+    env.TR_APP_VERSION = version;
+    env.TR_TORRENT_ID = '105';
+    env.TR_TORRENT_NAME = `Obi-Wan Kenobi 1 - LostFilm.TV [1080p]`;
+    env.TR_TORRENT_DIR = testMntDownloadsPath;
+    env.TR_TORRENT_HASH = '65b9eea6e1cc6bb9f0cd2a47751a186f';
+    env.TR_TIME_LOCALTIME = 'Fri Nov  4 17:22:09 2024';
+    env.TR_TORRENT_LABELS = '';
+    env.TR_TORRENT_BYTES_DOWNLOADED = '';
+    env.TR_TORRENT_TRACKERS = '';
+    //
+    const torrentdone: Torrentdone = new Torrentdone(testRootConfigsPath);
+    //
+    logInfoMock = jest.spyOn(torrentdone.logger, 'info').mockImplementation();
+    logDebugMock = jest.spyOn(torrentdone.logger, 'debug').mockImplementation();
+    jest.spyOn(torrentdone.logger, 'trace').mockImplementation();
+    logErrorMock = jest
+      .spyOn(torrentdone.logger, 'error')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    const readdirSyncMock = jest.spyOn(fs, 'readdirSync').mockImplementation(() => {
+      throw new Error('readdirSync emulate error');
+    });
+    // Run process
+    await torrentdone.main();
+    // Log Error
+    expect(logErrorMock).toHaveBeenNthCalledWith(1, `readdirSync emulate error`);
+    expect(logErrorMock).toHaveBeenNthCalledWith(2, `TORRENT ID: "105" ERROR END PROCESS`);
+    readdirSyncMock.mockRestore();
+  });
+  // Move file
+  it(`move file exec command result throw error`, async () => {
+    env.TR_APP_VERSION = version;
+    env.TR_TORRENT_ID = '100';
+    env.TR_TORRENT_NAME = `The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv`;
+    env.TR_TORRENT_DIR = testMntDownloadsPath;
+    env.TR_TORRENT_HASH = '540d0ae0eac6cc48e321e54293b19b858db355da';
+    env.TR_TIME_LOCALTIME = 'Fri Nov  4 17:22:09 2022';
+    env.TR_TORRENT_LABELS = '';
+    env.TR_TORRENT_BYTES_DOWNLOADED = '';
+    env.TR_TORRENT_TRACKERS = '';
+    //
+    const torrentdone: Torrentdone = new Torrentdone(testRootConfigsPath);
+    //
+    logInfoMock = jest.spyOn(torrentdone.logger, 'info').mockImplementation();
+    logDebugMock = jest.spyOn(torrentdone.logger, 'debug').mockImplementation();
+    jest.spyOn(torrentdone.logger, 'trace').mockImplementation();
+    logErrorMock = jest
+      .spyOn(torrentdone.logger, 'error')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    const execSyncMock = jest.spyOn(cproc, 'execSync').mockImplementation(() => {
+      copyFileSync(
+        normalize(`${testMntDownloadsPath}/The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv`),
+        normalize(
+          `${testMntDataPath}/media/TV Shows/The Handmaid's Tale/Season 05/The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv`
+        )
+      );
+      return `127.0.0.1:9091/transmission/rpc/\nresponded: "succcess"`;
+    });
+    // Run process
+    await torrentdone.main();
+    // Log Error
+    expect(logErrorMock).toHaveBeenNthCalledWith(
+      1,
+      `Failed to move file "The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv". Reason: Negative result of exec command: 127.0.0.1:9091/transmission/rpc/responded: "succcess"`
+    );
+    expect(logErrorMock).toHaveBeenNthCalledWith(2, `TORRENT ID: "100" ERROR END PROCESS`);
+    execSyncMock.mockRestore();
+  });
+  it(`move file exists final path throw error`, async () => {
+    env.TR_APP_VERSION = version;
+    env.TR_TORRENT_ID = '100';
+    env.TR_TORRENT_NAME = `The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv`;
+    env.TR_TORRENT_DIR = testMntDownloadsPath;
+    env.TR_TORRENT_HASH = '540d0ae0eac6cc48e321e54293b19b858db355da';
+    env.TR_TIME_LOCALTIME = 'Fri Nov  4 17:22:09 2022';
+    env.TR_TORRENT_LABELS = '';
+    env.TR_TORRENT_BYTES_DOWNLOADED = '';
+    env.TR_TORRENT_TRACKERS = '';
+    //
+    const torrentdone: Torrentdone = new Torrentdone(testRootConfigsPath);
+    //
+    logInfoMock = jest.spyOn(torrentdone.logger, 'info').mockImplementation();
+    logDebugMock = jest
+      .spyOn(torrentdone.logger, 'debug')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    jest.spyOn(torrentdone.logger, 'trace').mockImplementation();
+    logErrorMock = jest
+      .spyOn(torrentdone.logger, 'error')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    const execSyncMock = jest.spyOn(cproc, 'execSync').mockImplementation(() => {
+      copyFileSync(
+        normalize(`${testMntDownloadsPath}/The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv`),
+        normalize(
+          `${testMntDataPath}/media/TV Shows/The Handmaid's Tale/Season 05/TTTTTThe.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv`
+        )
+      );
+      return `127.0.0.1:9091/transmission/rpc/\nresponded: "success"`;
+    });
+    // const existsSyncMock = jest.spyOn(fs, 'existsSync').mockReturnValue(false);
+    // Run process
+    await torrentdone.main();
+    // Log Debug
+    // expect(logDebugMock).toHaveBeenNthCalledWith(16, 'hello');
+    // Log Error
+    expect(logErrorMock).toHaveBeenNthCalledWith(
+      1,
+      `Failed to move file "The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv". Reason: file not found after move`
+    );
+    expect(logErrorMock).toHaveBeenNthCalledWith(2, `TORRENT ID: "100" ERROR END PROCESS`);
+    execSyncMock.mockRestore();
+    // existsSyncMock.mockRestore();
+  });
+  // Copy file
+  it(`copy file throw error`, async () => {
+    env.TR_APP_VERSION = version;
+    env.TR_TORRENT_ID = '105';
+    env.TR_TORRENT_NAME = `Obi-Wan Kenobi 1 - LostFilm.TV [1080p]`;
+    env.TR_TORRENT_DIR = testMntDownloadsPath;
+    env.TR_TORRENT_HASH = '65b9eea6e1cc6bb9f0cd2a47751a186f';
+    env.TR_TIME_LOCALTIME = 'Fri Nov  4 17:22:09 2024';
+    env.TR_TORRENT_LABELS = '';
+    env.TR_TORRENT_BYTES_DOWNLOADED = '';
+    env.TR_TORRENT_TRACKERS = '';
+    //
+    const torrentdone: Torrentdone = new Torrentdone(testRootConfigsPath);
+    //
+    logInfoMock = jest.spyOn(torrentdone.logger, 'info').mockImplementation();
+    logDebugMock = jest.spyOn(torrentdone.logger, 'debug').mockImplementation();
+    jest.spyOn(torrentdone.logger, 'trace').mockImplementation();
+    logErrorMock = jest
+      .spyOn(torrentdone.logger, 'error')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    const copyFileSyncMock = jest.spyOn(fs, 'copyFileSync').mockImplementation(() => {
+      throw new Error('copyFileSync emulate error');
+    });
+    // Run process
+    await torrentdone.main();
+    // Log Error
+    expect(logErrorMock).toHaveBeenNthCalledWith(1, `copyFileSync emulate error`);
+    expect(logErrorMock).toHaveBeenNthCalledWith(2, `TORRENT ID: "105" ERROR END PROCESS`);
+    copyFileSyncMock.mockRestore();
+  });
+  it(`copy file exists final path throw error`, async () => {
+    env.TR_APP_VERSION = version;
+    env.TR_TORRENT_ID = '105';
+    env.TR_TORRENT_NAME = `Obi-Wan Kenobi 1 - LostFilm.TV [1080p]`;
+    env.TR_TORRENT_DIR = testMntDownloadsPath;
+    env.TR_TORRENT_HASH = '65b9eea6e1cc6bb9f0cd2a47751a186f';
+    env.TR_TIME_LOCALTIME = 'Fri Nov  4 17:22:09 2024';
+    env.TR_TORRENT_LABELS = '';
+    env.TR_TORRENT_BYTES_DOWNLOADED = '';
+    env.TR_TORRENT_TRACKERS = '';
+    //
+    const torrentdone: Torrentdone = new Torrentdone(testRootConfigsPath);
+    //
+    logInfoMock = jest.spyOn(torrentdone.logger, 'info').mockImplementation();
+    logDebugMock = jest.spyOn(torrentdone.logger, 'debug').mockImplementation();
+    jest.spyOn(torrentdone.logger, 'trace').mockImplementation();
+    logErrorMock = jest
+      .spyOn(torrentdone.logger, 'error')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    const copyFileSyncMock = jest.spyOn(fs, 'copyFileSync').mockImplementation(() => {
+      return;
+    });
+    // Run process
+    await torrentdone.main();
+    // Log Error
+    expect(logErrorMock).toHaveBeenNthCalledWith(
+      1,
+      `Error. Failed to copy file "Obi-Wan.Kenobi.S01E01.1080p.rus.LostFilm.TV.mkv"`
+    );
+    expect(logErrorMock).toHaveBeenNthCalledWith(2, `TORRENT ID: "105" ERROR END PROCESS`);
+    copyFileSyncMock.mockRestore();
+  });
+  // Film process
+  it(`film process throw error`, async () => {
+    env.TR_APP_VERSION = version;
+    env.TR_TORRENT_ID = '107';
+    env.TR_TORRENT_NAME = `Аватар 3D (2009).mkv`;
+    env.TR_TORRENT_DIR = testMntDownloadsPath;
+    env.TR_TORRENT_HASH = '524e05dc77239f3a15dab766aaa59a9e432efde7';
+    env.TR_TIME_LOCALTIME = 'Fri Nov  7 17:22:09 2022';
+    env.TR_TORRENT_LABELS = '';
+    env.TR_TORRENT_BYTES_DOWNLOADED = '';
+    env.TR_TORRENT_TRACKERS = '';
+    //
+    const torrentdone: Torrentdone = new Torrentdone(testRootConfigsPath);
+    //
+    logInfoMock = jest.spyOn(torrentdone.logger, 'info').mockImplementation();
+    logDebugMock = jest.spyOn(torrentdone.logger, 'debug').mockImplementation();
+    jest.spyOn(torrentdone.logger, 'trace').mockImplementation();
+    logErrorMock = jest
+      .spyOn(torrentdone.logger, 'error')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    //
+    const execSyncMock = jest.spyOn(cproc, 'execSync').mockImplementation(() => {
+      throw new Error('execSync emulate error');
+    });
+    // Run process
+    await torrentdone.main();
+    // log Error
+    expect(logErrorMock).toHaveBeenNthCalledWith(1, 'execSync emulate error');
+    expect(logErrorMock).toHaveBeenNthCalledWith(2, 'TORRENT ID: "107" ERROR END PROCESS');
+    execSyncMock.mockRestore();
+  });
+  // Saving path prepare
+  it(`saving path prepare throw error`, async () => {
+    env.TR_APP_VERSION = version;
+    env.TR_TORRENT_ID = '107';
+    env.TR_TORRENT_NAME = `Аватар 3D (2009).mkv`;
+    env.TR_TORRENT_DIR = testMntDownloadsPath;
+    env.TR_TORRENT_HASH = '524e05dc77239f3a15dab766aaa59a9e432efde7';
+    env.TR_TIME_LOCALTIME = 'Fri Nov  7 17:22:09 2022';
+    env.TR_TORRENT_LABELS = '';
+    env.TR_TORRENT_BYTES_DOWNLOADED = '';
+    env.TR_TORRENT_TRACKERS = '';
+    //
+    const torrentdone: Torrentdone = new Torrentdone(testRootConfigsPath);
+    //
+    logInfoMock = jest.spyOn(torrentdone.logger, 'info').mockImplementation();
+    logDebugMock = jest.spyOn(torrentdone.logger, 'debug').mockImplementation();
+    jest.spyOn(torrentdone.logger, 'trace').mockImplementation();
+    logErrorMock = jest
+      .spyOn(torrentdone.logger, 'error')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    //
+    const mkdirSyncMock = jest.spyOn(fs, 'mkdirSync').mockImplementation(() => {
+      throw new Error('mkdirSync emulate error');
+    });
+    // Run process
+    await torrentdone.main();
+    // log Error
+    expect(logErrorMock).toHaveBeenNthCalledWith(1, 'mkdirSync emulate error');
+    expect(logErrorMock).toHaveBeenNthCalledWith(2, 'TORRENT ID: "107" ERROR END PROCESS');
+    mkdirSyncMock.mockRestore();
+  });
+  it(`saving path exists throw error`, async () => {
+    env.TR_APP_VERSION = version;
+    env.TR_TORRENT_ID = '107';
+    env.TR_TORRENT_NAME = `Аватар 3D (2009).mkv`;
+    env.TR_TORRENT_DIR = testMntDownloadsPath;
+    env.TR_TORRENT_HASH = '524e05dc77239f3a15dab766aaa59a9e432efde7';
+    env.TR_TIME_LOCALTIME = 'Fri Nov  7 17:22:09 2022';
+    env.TR_TORRENT_LABELS = '';
+    env.TR_TORRENT_BYTES_DOWNLOADED = '';
+    env.TR_TORRENT_TRACKERS = '';
+    //
+    const torrentdone: Torrentdone = new Torrentdone(testRootConfigsPath);
+    //
+    logInfoMock = jest.spyOn(torrentdone.logger, 'info').mockImplementation();
+    logDebugMock = jest.spyOn(torrentdone.logger, 'debug').mockImplementation();
+    jest.spyOn(torrentdone.logger, 'trace').mockImplementation();
+    logErrorMock = jest
+      .spyOn(torrentdone.logger, 'error')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    //
+    const mkdirSyncMock = jest.spyOn(fs, 'mkdirSync').mockImplementation(() => {
+      return undefined;
+    });
+    // Run process
+    await torrentdone.main();
+    // log Error
+    expect(logErrorMock).toHaveBeenNthCalledWith(1, 'Saving path is can not be created');
+    expect(logErrorMock).toHaveBeenNthCalledWith(2, 'TORRENT ID: "107" ERROR END PROCESS');
+    mkdirSyncMock.mockRestore();
+  });
+  // Novafilm throw error
+  it(`OK - 131 - californication.s06.hdtv.rus.eng.novafilm.tv.avi`, async () => {
+    env.TR_APP_VERSION = version;
+    env.TR_TORRENT_ID = '131';
+    env.TR_TORRENT_NAME = `californication.s06.hdtv.rus.eng.novafilm.tv.avi`;
+    env.TR_TORRENT_DIR = testMntDownloadsPath;
+    env.TR_TORRENT_HASH = '540d0ae0eac6cc48e485e54293b19b858db355de';
+    env.TR_TIME_LOCALTIME = 'Sat Sep  4 21:22:09 2022';
+    env.TR_TORRENT_LABELS = '';
+    env.TR_TORRENT_BYTES_DOWNLOADED = '';
+    env.TR_TORRENT_TRACKERS = '';
+    //
+    const torrentdone: Torrentdone = new Torrentdone(testRootConfigsPath);
+    //
+    jest.spyOn(torrentdone.logger, 'info').mockImplementation();
+    jest.spyOn(torrentdone.logger, 'debug').mockImplementation();
+    jest.spyOn(torrentdone.logger, 'trace').mockImplementation();
+    logErrorMock = jest
+      .spyOn(torrentdone.logger, 'error')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    //
+    jest.spyOn(cproc, 'execSync').mockImplementation(() => {
+      copyFileSync(
+        normalize(`${testMntDownloadsPath}/californication.s06.hdtv.rus.eng.novafilm.tv.avi`),
+        normalize(
+          `${testMntDataPath}/media/Movies/${new Date().getFullYear()}/californication.s06.hdtv.rus.eng.novafilm.tv.avi`
+        )
+      );
+      return `127.0.0.1:9091/transmission/rpc/\nresponded: "success"`;
+    });
+    //
+    expect(torrentdone.TR_APP_VERSION).toEqual(version);
+    expect(torrentdone.TR_TORRENT_ID).toEqual(131);
+    expect(torrentdone.TR_TORRENT_NAME).toEqual(`californication.s06.hdtv.rus.eng.novafilm.tv.avi`);
+    expect(torrentdone.TR_TORRENT_DIR).toEqual(testMntDownloadsPath);
+    expect(torrentdone.TR_TORRENT_HASH).toEqual('540d0ae0eac6cc48e485e54293b19b858db355de');
+    expect(torrentdone.TR_TIME_LOCALTIME).toEqual('Sat Sep  4 21:22:09 2022');
+    expect(torrentdone.TR_TORRENT_LABELS).toEqual('');
+    expect(torrentdone.TR_TORRENT_BYTES_DOWNLOADED).toEqual(0);
+    expect(torrentdone.TR_TORRENT_TRACKERS).toEqual('');
+    //
+    await torrentdone.main();
+    // log Error
+    expect(logErrorMock).toHaveBeenNthCalledWith(
+      1,
+      `No data extracted for file "californication.s06.hdtv.rus.eng.novafilm.tv.avi"`
+    );
+  });
+});
+
+describe('torrentdone.ts - Second elements', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+  // transmission 4.0 environment
+  it(`TR_TORRENT_BYTES_DOWNLOADED and TR_TORRENT_TRACKERS`, async () => {
+    env.TR_APP_VERSION = version;
+    env.TR_TORRENT_ID = '100';
+    env.TR_TORRENT_NAME = `The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv`;
+    env.TR_TORRENT_DIR = testMntDownloadsPath;
+    env.TR_TORRENT_HASH = '540d0ae0eac6cc48e321e54293b19b858db355da';
+    env.TR_TIME_LOCALTIME = 'Fri Nov  4 17:22:09 2022';
+    env.TR_TORRENT_LABELS = '';
+    env.TR_TORRENT_BYTES_DOWNLOADED = '1024';
+    env.TR_TORRENT_TRACKERS = 'https://127.0.0.1:4444/,https://127.0.0.1:4545/';
+    //
+    const torrentdone: Torrentdone = new Torrentdone(testRootConfigsPath);
+    //
+    logInfoMock = jest
+      .spyOn(torrentdone.logger, 'info')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    logDebugMock = jest.spyOn(torrentdone.logger, 'debug').mockImplementation();
+    logErrorMock = jest.spyOn(torrentdone.logger, 'error').mockImplementation();
+    jest.spyOn(torrentdone.logger, 'trace').mockImplementation();
+    //
+    jest.spyOn(cproc, 'execSync').mockImplementation(() => {
+      copyFileSync(
+        normalize(`${testMntDownloadsPath}/The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv`),
+        normalize(
+          `${testMntDataPath}/media/TV Shows/The Handmaid's Tale/Season 05/The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv`
+        )
+      );
+      return `127.0.0.1:9091/transmission/rpc/\nresponded: "success"`;
+    });
+    //
+    expect(torrentdone.TR_TORRENT_BYTES_DOWNLOADED).toEqual(1024);
+    expect(torrentdone.TR_TORRENT_TRACKERS).toEqual('https://127.0.0.1:4444/,https://127.0.0.1:4545/');
+    // Run process
+    await torrentdone.main();
+    // log Info
+    expect(logInfoMock).toHaveBeenNthCalledWith(10, 'BYTES:  "1024"');
+    expect(logInfoMock).toHaveBeenNthCalledWith(11, 'TRACKERS:  "https://127.0.0.1:4444/,https://127.0.0.1:4545/"');
+    // Log Error
+    expect(logErrorMock).not.toHaveBeenCalled();
+  });
+  // TR_TORRENT_LABELS
+  it(`TR_TORRENT_LABELS`, async () => {
+    env.TR_APP_VERSION = version;
+    env.TR_TORRENT_ID = '100';
+    env.TR_TORRENT_NAME = `The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv`;
+    env.TR_TORRENT_DIR = testMntDownloadsPath;
+    env.TR_TORRENT_HASH = '540d0ae0eac6cc48e321e54293b19b858db355da';
+    env.TR_TIME_LOCALTIME = 'Fri Nov  4 17:22:09 2022';
+    env.TR_TORRENT_LABELS = 'foo,bar,baz';
+    env.TR_TORRENT_BYTES_DOWNLOADED = '1024';
+    env.TR_TORRENT_TRACKERS = 'https://127.0.0.1:4444/,https://127.0.0.1:4545/';
+    //
+    const torrentdone: Torrentdone = new Torrentdone(testRootConfigsPath);
+    //
+    logInfoMock = jest
+      .spyOn(torrentdone.logger, 'info')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    logDebugMock = jest.spyOn(torrentdone.logger, 'debug').mockImplementation();
+    logErrorMock = jest.spyOn(torrentdone.logger, 'error').mockImplementation();
+    jest.spyOn(torrentdone.logger, 'trace').mockImplementation();
+    //
+    jest.spyOn(cproc, 'execSync').mockImplementation(() => {
+      copyFileSync(
+        normalize(`${testMntDownloadsPath}/The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv`),
+        normalize(
+          `${testMntDataPath}/media/TV Shows/The Handmaid's Tale/Season 05/The.Handmaid's.Tale.S05E03.1080p.rus.LostFilm.TV.mkv`
+        )
+      );
+      return `127.0.0.1:9091/transmission/rpc/\nresponded: "success"`;
+    });
+    //
+    expect(torrentdone.TR_TORRENT_LABELS).toEqual('foo,bar,baz');
+    // Run process
+    await torrentdone.main();
+    // log Info
+    expect(logInfoMock).toHaveBeenNthCalledWith(10, 'LABELS:  "foo,bar,baz"');
+    // Log Error
+    expect(logErrorMock).not.toHaveBeenCalled();
   });
 });

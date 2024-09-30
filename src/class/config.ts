@@ -114,11 +114,14 @@ class Config {
   private readonly _trTorrentLabels: string;
   /**
    * ONLY FOR TRANSMISSION >= 4.0.0.
+   * * Doc: https://github.com/transmission/transmission/blob/4.0.6/docs/Scripts.md
    * Number of bytes that were downloaded for this torrent.
    * Example: `123456789` ???
    */
   private readonly _trTorrentBytesDownloaded: number;
   /**
+   * ONLY FOR TRANSMISSION >= 4.0.0.
+   * * Doc: https://github.com/transmission/transmission/blob/4.0.6/docs/Scripts.md
    * A comma-delimited list of the torrent's trackers' announce URLs.
    * Example: `https://foo.com,https://bar.org,https://baz.com` ???
    */
@@ -272,7 +275,7 @@ class Config {
    * Check transmission-daemon variables/parameters for start work
    * variables pass to Environment
    * transmission-daemon passes 7 variables to script / 9 for transmission-daemon 4.X.X
-   * [More info](https://github.com/transmission/transmission/blob/4.0.0-beta.1/docs/Scripts.md)
+   * [More info](* Doc: https://github.com/transmission/transmission/blob/4.0.6/docs/Scripts.md)
    *
    * ```sh
    * TR_APP_VERSION: '3.00',
