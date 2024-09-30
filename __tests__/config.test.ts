@@ -52,6 +52,15 @@ describe('config.ts', () => {
       );
     }
   });
+  it('config while package.json throw error', async () => {
+    jest.spyOn(Config.prototype, 'maxWhileCount', 'get').mockReturnValue(0);
+    try {
+      new Config();
+    } catch (error) {
+      // eslint-disable-next-line jest/no-conditional-expect
+      expect(error).toHaveProperty('message', 'The number of attempts to search for the root directory has expired');
+    }
+  });
   /**
    * Get all parameters test
    */
