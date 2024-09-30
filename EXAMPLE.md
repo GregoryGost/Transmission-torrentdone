@@ -33,7 +33,7 @@
 [11.05.2024_04:38:08.212] : [DEBUG] : Saving path directories is created
 [11.05.2024_04:38:08.213] : [INFO] : MOVE file "Dark.Matter.S01E01.1080p.rus.LostFilm.TV.mkv" to saving path "/mnt/data
 /media/serials/Dark Matter/Season 01"
-[11.05.2024_04:38:08.213] : [DEBUG] : Move command: "transmission-remote 127.0.0.1:9091 --auth narakot:247050689Hh
+[11.05.2024_04:38:08.213] : [DEBUG] : Move command: "transmission-remote 127.0.0.1:9091 --auth login:password
 --torrent 16 --move "/mnt/data/media/serials/Dark Matter/Season 01""
 [11.05.2024_04:38:08.213] : [DEBUG] : Start moving file...
 [11.05.2024_04:38:08.223] : [DEBUG] : execResult: 127.0.0.1:9091/transmission/rpc/ responded: "success"
