@@ -121,7 +121,7 @@ class Torrentdone {
   private readonly regexFilm_Base: RegExp = /[.(_\-\s](19|20)[0-9]{2}[.)_\-\s]/i;
   private readonly regexNameSeason: RegExp = /(.+)\.?([sS]([0-9]{2}))/i;
   private readonly regexNameYear: RegExp = /^(.+)\s{0,1}([.(_\-\s]((19|20)[0-9]{2})[.)_\-\s]).+$/i;
-  private readonly regexThreeD = /[.(_\-\s](3D)[.(_\-\s]?/i;
+  private readonly regexThreeD: RegExp = /[.(_\-\s](3D)[.(_\-\s]?/i;
   // Releaser Lostfilm
   private readonly regexSerial_Lostfilm: RegExp = /(s\d{2}e\d{2}).+(lostfilm)/i;
   private readonly regexFilm_Lostfilm: RegExp = /^(.+).+(1080|720).+(lostfilm).+$/i;
