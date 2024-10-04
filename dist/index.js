@@ -18693,6 +18693,7 @@ exports.Config = void 0;
 const node_url_1 = __nccwpck_require__(3136);
 const node_path_1 = __nccwpck_require__(6760);
 const node_fs_1 = __nccwpck_require__(3024);
+const node_os_1 = __nccwpck_require__(8161);
 const nconf_1 = __importDefault(__nccwpck_require__(7771));
 class Config {
     nconf = nconf_1.default;
@@ -18720,6 +18721,7 @@ class Config {
     _trTorrentTrackers;
     _maxWhileCount = 10;
     constructor(root_path) {
+        process.env.UV_THREADPOOL_SIZE = (0, node_os_1.cpus)().length.toString();
         this._rootPath = root_path ?? Config.getRootDir(this.maxWhileCount);
         this.init();
         this._trLogin = this.getParam('login');
@@ -19567,6 +19569,14 @@ module.exports = require("node:child_process");
 
 "use strict";
 module.exports = require("node:fs");
+
+/***/ }),
+
+/***/ 8161:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:os");
 
 /***/ }),
 

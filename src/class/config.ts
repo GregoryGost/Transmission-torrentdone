@@ -1,6 +1,7 @@
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, normalize, join } from 'node:path';
 import { existsSync } from 'node:fs';
+import { cpus } from 'node:os';
 import nconf from 'nconf';
 
 /**
@@ -130,6 +131,8 @@ class Config {
   private _maxWhileCount = 10;
 
   constructor(root_path?: string) {
+    process.env.UV_THREADPOOL_SIZE = cpus().length.toString();
+    //
     this._rootPath = root_path ?? Config.getRootDir(this.maxWhileCount);
     this.init();
     this._trLogin = this.getParam('login');
