@@ -310,7 +310,7 @@ class Torrentdone {
       .replace(/^\./g, '')
       .replace(/\.$/g, '')
       .replace(/\s+/g, ' ');
-    const dirName: string = name.replace(/(\.|\s|_)/g, ' ');
+    const dirName: string = name.replace(/(\.|\s|_)/g, ' ').replace(/\s+/g, ' ');
     const season = `Season ${regexExec[3]}`;
     const data: SerialDataI = {
       name,
