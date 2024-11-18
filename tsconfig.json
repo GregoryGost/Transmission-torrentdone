@@ -3,7 +3,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "NodeNext",
-    "rootDir": "./src",
+    "rootDir": "./",
     "moduleResolution": "NodeNext",
     "baseUrl": "./",
     "sourceMap": true,
