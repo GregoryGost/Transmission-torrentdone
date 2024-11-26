@@ -112,6 +112,8 @@
 
 Нужно поставить **Node.js**, скачать исполняемый файл скрипта и создать для него конфигурацию.
 
+НЕ обязательно клонировать весь GIT проект !!!
+
 Команды для Proxmox LXC Debian под root:
 
 ```shell
@@ -130,15 +132,14 @@ node -v
 v20.17.0
 ```
 
-Далее создаем папку под приложение, делаем файл исполняемым. Создаем фейковый файл `package.json` (нужно для корректного
-определения корневой дирректории и нахождения файла конфигурации)
+Далее создаем папку под приложение, скачиваем два файла `index.js` и `package.json`. Делаем файл `index.js` исполняемым.
 
 ```shell
 mkdir /opt/torrentdone
 cd /opt/torrentdone
-wget https://raw.githubusercontent.com/GregoryGost/transmission-torrentdone/refs/heads/main/dist/index.js
+wget -O index.js https://raw.githubusercontent.com/GregoryGost/transmission-torrentdone/refs/heads/main/dist/index.js
+wget -O package.json https://raw.githubusercontent.com/GregoryGost/transmission-torrentdone/refs/heads/main/package.json
 chmod +x index.js
-echo '{"version":"3.1.1"}' > package.json
 ```
 
 ### Конфигурирование скрипта
@@ -197,16 +198,18 @@ bash nodesource_setup.sh
 apt update && apt upgrade -y
 ```
 
-Для обновления можно просто перекачать `index.js` файл
+Для обновления можно просто перекачать файлы `index.js` и `package.json`
 
 ```shell
 wget -O index.js https://raw.githubusercontent.com/GregoryGost/transmission-torrentdone/refs/heads/main/dist/index.js
+wget -O package.json https://raw.githubusercontent.com/GregoryGost/transmission-torrentdone/refs/heads/main/package.json
 ```
 
-Если вы хотите обновить из другой ветки, просто поменяйте её название в пути скачивания
+Если вы хотите обновить из другой ветки, просто поменяйте её название в пути скачивания. Пример для `develop` ветки.
 
 ```shell
 wget -O index.js https://raw.githubusercontent.com/GregoryGost/transmission-torrentdone/refs/heads/develop/dist/index.js
+wget -O package.json https://raw.githubusercontent.com/GregoryGost/transmission-torrentdone/refs/heads/develop/package.json
 ```
 
 ## Алгоритм обработки торрентов
