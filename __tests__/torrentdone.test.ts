@@ -668,6 +668,100 @@ describe('torrentdone.ts - Serials files in directory', () => {
     // log Error
     expect(logErrorMock).not.toHaveBeenCalled();
   });
+  // 106
+  it(`OK - 110 - The Mentalist`, async () => {
+    if (existsSync(normalize(`${testMntDataPath}/media/TV Shows/The Mentalist`)))
+      rmSync(normalize(`${testMntDataPath}/media/TV Shows/The Mentalist`), { recursive: true });
+    env.TR_APP_VERSION = version;
+    env.TR_TORRENT_ID = '110';
+    env.TR_TORRENT_NAME = `Менталист`;
+    env.TR_TORRENT_DIR = testMntDownloadsPath;
+    env.TR_TORRENT_HASH = 'fc14ec2e2a40dbf7e2b4a87aa4f19cc4427a1ee1';
+    env.TR_TIME_LOCALTIME = 'Mon Nov 25 21:25:43 2024';
+    env.TR_TORRENT_LABELS = '';
+    env.TR_TORRENT_BYTES_DOWNLOADED = '';
+    env.TR_TORRENT_TRACKERS = '';
+    //
+    const torrentdone: Torrentdone = new Torrentdone(testRootConfigsPath);
+    //
+    logInfoMock = jest
+      .spyOn(torrentdone.logger, 'info')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    logDebugMock = jest
+      .spyOn(torrentdone.logger, 'debug')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    logErrorMock = jest
+      .spyOn(torrentdone.logger, 'error')
+      .mockImplementation((_level: string | Level, ...args: any[]): any => {
+        return args;
+      });
+    jest.spyOn(torrentdone.logger, 'trace').mockImplementation();
+    //
+    expect(torrentdone.TR_APP_VERSION).toEqual(version);
+    expect(torrentdone.TR_TORRENT_ID).toEqual(110);
+    expect(torrentdone.TR_TORRENT_NAME).toEqual(`Менталист`);
+    expect(torrentdone.TR_TORRENT_DIR).toEqual(testMntDownloadsPath);
+    expect(torrentdone.TR_TORRENT_HASH).toEqual('fc14ec2e2a40dbf7e2b4a87aa4f19cc4427a1ee1');
+    expect(torrentdone.TR_TIME_LOCALTIME).toEqual('Mon Nov 25 21:25:43 2024');
+    expect(torrentdone.TR_TORRENT_LABELS).toEqual('');
+    expect(torrentdone.TR_TORRENT_BYTES_DOWNLOADED).toEqual(0);
+    expect(torrentdone.TR_TORRENT_TRACKERS).toEqual('');
+    //
+    await torrentdone.main();
+    // log Info
+    expect(logInfoMock).toHaveBeenNthCalledWith(7, `NAME:  "Менталист"`);
+    expect(logInfoMock).toHaveBeenNthCalledWith(15, `Element: "The.Mentalist.s01e01.BDRip.720p.Rus.Eng.mkv" is a FILE`);
+    expect(logInfoMock).toHaveBeenNthCalledWith(
+      18,
+      `File "The.Mentalist.s01e01.BDRip.720p.Rus.Eng.mkv" copied successfully. => END`
+    );
+    expect(logInfoMock).toHaveBeenNthCalledWith(
+      23,
+      `File "The.Mentalist.s01e02.BDRip.720p.Rus.Eng.mkv" copied successfully. => END`
+    );
+    expect(logInfoMock).toHaveBeenNthCalledWith(
+      28,
+      `File "The.Mentalist.s02e03.WEB-DL.720p.Rus.Eng.mkv" copied successfully. => END`
+    );
+    expect(logInfoMock).toHaveBeenNthCalledWith(
+      33,
+      `File "The.Mentalist.s02e04.WEB-DL.720p.Rus.Eng.mkv" copied successfully. => END`
+    );
+    expect(logInfoMock).toHaveBeenNthCalledWith(
+      38,
+      `File "The.Mentalist.s02e05.WEB-DL.720p.Rus.Eng.mkv" copied successfully. => END`
+    );
+    expect(logInfoMock).toHaveBeenNthCalledWith(40, `TORRENT ID: "110" END PROCESS`);
+    // log Debug
+    expect(logDebugMock).toHaveBeenNthCalledWith(1, `DIR_FLAG: "true"`);
+    expect(logDebugMock).toHaveBeenNthCalledWith(
+      3,
+      `All elements in dir: "The.Mentalist.s01.BDRip.720p.Rus.Eng,The.Mentalist.s02.WEB-DL.720p.Rus.Eng,The.Mentalist.s01e01.BDRip.720p.Rus.Eng.mkv,The.Mentalist.s01e02.BDRip.720p.Rus.Eng.mkv,The.Mentalist.s02e03.WEB-DL.720p.Rus.Eng.mkv,The.Mentalist.s02e04.WEB-DL.720p.Rus.Eng.mkv,The.Mentalist.s02e05.WEB-DL.720p.Rus.Eng.mkv"`
+    );
+    //
+    expect(
+      existsSync(
+        normalize(
+          `${testMntDataPath}/media/TV Shows/The Mentalist/Season 01/The.Mentalist.s01e01.BDRip.720p.Rus.Eng.mkv`
+        )
+      )
+    ).toBe(true);
+    expect(
+      existsSync(
+        normalize(
+          `${testMntDataPath}/media/TV Shows/The Mentalist/Season 01/The.Mentalist.s01e02.BDRip.720p.Rus.Eng.mkv`
+        )
+      )
+    ).toBe(true);
+    // log Info
+    expect(logInfoMock).toHaveBeenNthCalledWith(3, `TORRENT ID: "110" FINISH: START PROCESS ...`);
+    // log Error
+    expect(logErrorMock).not.toHaveBeenCalled();
+  });
 });
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

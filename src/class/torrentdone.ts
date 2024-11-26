@@ -1,6 +1,7 @@
-import { normalize, extname, basename, dirname } from 'node:path';
+import { normalize, extname, basename, dirname, join } from 'node:path';
 import { lstatSync, Stats, readdirSync, existsSync, mkdirSync, copyFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
+import type { Dirent } from 'node:fs';
 import type { Logger } from 'log4js';
 //
 import { Config } from './config';
@@ -627,18 +628,22 @@ class Torrentdone {
   }
 
   /**
-   * If torrent Directory, foreach files and check only media file
+   * If torrent Directory, foreach files and get only media file
    * mkv, avi, mp4
    * @param {string} dir Directory path
    */
-  private async directoryForeach(dir: string): Promise<void> {
+  private async foreachFilesInDir(dir: string): Promise<void> {
     try {
       this.logger.info(`Directory process: "${dir}"`);
-      const elementsList: string[] = readdirSync(dir);
-      this.logger.debug(`All elements in dir: "${elementsList}"`);
+      const elementsList: Dirent[] = readdirSync(dir, { recursive: true, withFileTypes: true });
+      this.logger.debug(`All elements in dir: "${elementsList.map(e => e.name).toString()}"`);
       for (const element of elementsList) {
-        const elementPath: string = normalize(`${this.TR_TORRENT_DIR}/${this.TR_TORRENT_NAME}/${element}`);
-        await this.checkFileOrDirectory(elementPath);
+        if (element.isFile()) {
+          const elementName: string = element.name;
+          const elementPath: string = element.parentPath;
+          const filePathNormalized: string = normalize(join(elementPath, elementName));
+          await this.checkFileOrDirectory(filePathNormalized);
+        }
       }
     } catch (error: unknown) {
       this.logger.trace(error);
@@ -648,6 +653,7 @@ class Torrentdone {
 
   /**
    * Check torrent is File or is Directory or Unknown type
+   * First RUN from main() method
    * @param {string} element_path Torrent path
    */
   private async checkFileOrDirectory(element_path: string): Promise<void> {
@@ -682,7 +688,7 @@ class Torrentdone {
         this.logger.debug(`DIR_FLAG: "${this.DIR_FLAG}"`);
         this.logger.debug(`Element: full path: "${element_path}"`);
         // FOREACH directory. Check into files.
-        await this.directoryForeach(element_path);
+        await this.foreachFilesInDir(element_path);
       } else {
         // Unknown type: no next action
         this.logger.debug(`TR_TORRENT_NAME: "${this.TR_TORRENT_NAME}" is neither a file or a directory`);
