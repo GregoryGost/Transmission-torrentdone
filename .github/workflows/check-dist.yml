@@ -56,6 +56,8 @@ jobs:
       - name: Compare Directories
         id: diff
         run: |
+          echo "Compare Directories"
+          git config core.filemode false
           if [ ! -d dist/ ]; then
             echo "Expected dist/ directory does not exist.  See status below:"
             ls -la ./
